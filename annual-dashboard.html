@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMC 2026 연간 사역</title>
+  <style>
+    :root {
+      --primary: #1a3a5c;
+      --primary-light: #2d5f8a;
+      --accent: #c8973e;
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --border: #d1dce8;
+      --text: #1a2535;
+      --text-muted: #6b7f96;
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --sidebar-w: 220px;
+      --drawer-w: 420px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .header-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .dash-link {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .dash-link:hover { background: rgba(255,255,255,0.28); }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      padding: 12px 0;
+      z-index: 10;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .sidebar-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 16px 10px;
+    }
+    .month-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 16px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.12s;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      position: relative;
+    }
+    .month-item:hover { background: var(--bg); }
+    .month-item.active {
+      background: #edf3fa;
+      border-left-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .month-badge {
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      min-width: 24px;
+      text-align: center;
+    }
+    .month-item.active .month-badge {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* ── Main content ── */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      padding: 20px 24px;
+      max-width: 900px;
+    }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .team-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+      flex: 1;
+    }
+    .team-tabs::-webkit-scrollbar { display: none; }
+    .team-tab {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .team-tab:hover { border-color: var(--primary-light); color: var(--primary); }
+    .team-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .sort-select {
+      border: 1.5px solid var(--border);
+      background: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* ── Month section ── */
+    .month-section { margin-bottom: 32px; }
+    .month-header {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .month-header .event-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--primary);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* ── Date group ── */
+    .date-group { margin-bottom: 6px; }
+    .date-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 6px 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .date-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Event card ── */
+    .event-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .event-card:hover {
+      box-shadow: 0 4px 16px rgba(26,58,92,0.12);
+      border-color: var(--primary-light);
+      transform: translateY(-1px);
+    }
+    .event-card.status-done { opacity: 0.75; }
+    .event-card.status-hold { border-left: 3px solid #a0aec0; }
+    .event-card.status-inprogress { border-left: 3px solid var(--accent); }
+    .event-card.status-done { border-left: 3px solid #2f855a; }
+
+    .card-date {
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      min-width: 70px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .card-body { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .team-chip {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .progress-bar {
+      width: 60px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #2f855a;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .progress-text {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-planned { background: #a0aec0; }
+    .dot-inprogress { background: var(--accent); }
+    .dot-done { background: #2f855a; }
+    .dot-hold { background: #718096; }
+
+    /* ── Overlay ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── Drawer ── */
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: var(--drawer-w);
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--card-bg);
+      z-index: 400;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 20px 14px;
+      flex-shrink: 0;
+    }
+    .drawer-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .drawer-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .drawer-close {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,0.3); }
+    .drawer-date {
+      font-size: 0.78rem;
+      opacity: 0.8;
+      margin-bottom: 8px;
+    }
+    .drawer-teams { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    /* Status row */
+    .status-row {
+      display: flex;
+      gap: 6px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .status-chip {
+      flex: 1;
+      text-align: center;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.12s;
+    }
+    .status-chip:hover { border-color: var(--primary-light); }
+    .status-chip.active-planned { background: #edf2f7; border-color: #a0aec0; color: #4a5568; }
+    .status-chip.active-inprogress { background: #fffbf0; border-color: var(--accent); color: #7b5e1a; }
+    .status-chip.active-done { background: #f0fff4; border-color: #2f855a; color: #2f855a; }
+    .status-chip.active-hold { background: #f7fafc; border-color: #718096; color: #4a5568; }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: none;
+      background: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      font-family: inherit;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-pane { display: none; flex: 1; overflow-y: auto; padding: 16px 20px; flex-direction: column; }
+    .tab-pane.active { display: flex; }
+
+    /* Todo pane */
+    .todo-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .todo-input {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .todo-input:focus { border-color: var(--primary-light); }
+    .todo-add-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .todo-add-btn:hover { background: var(--primary-light); }
+    .todo-list { display: flex; flex-direction: column; gap: 4px; }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: var(--bg);
+      transition: background 0.12s;
+    }
+    .todo-item:hover { background: #e8eff7; }
+    .todo-cb { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); flex-shrink: 0; }
+    .todo-text {
+      flex: 1;
+      font-size: 0.83rem;
+      line-height: 1.4;
+    }
+    .todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+    .todo-del {
+      background: none;
+      border: none;
+      color: #c53030;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      opacity: 0.6;
+      transition: opacity 0.12s;
+    }
+    .todo-del:hover { opacity: 1; }
+    .todo-empty {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Textarea pane */
+    .notes-textarea {
+      width: 100%;
+      flex: 1;
+      min-height: 200px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      color: var(--text);
+      line-height: 1.6;
+      transition: border-color 0.15s;
+    }
+    .notes-textarea:focus { border-color: var(--primary-light); }
+    .auto-save-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Weekly tab styles ── */
+    .weekly-week-group { margin-bottom: 16px; }
+    .weekly-week-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 4px 0 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .weekly-todo-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--bg);
+      margin-bottom: 4px;
+      font-size: 0.83rem;
+    }
+    .weekly-todo-text { flex: 1; line-height: 1.4; }
+    .weekly-todo-text.done { text-decoration: line-through; color: var(--text-muted); }
+    .weekly-todo-date { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
+    .weekly-done-badge {
+      font-size: 0.68rem;
+      padding: 1px 7px;
+      border-radius: 8px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .weekly-done-badge.done { background: #c6f6d5; color: #276749; }
+    .weekly-done-badge.pending { background: #e2e8f0; color: #4a5568; }
+    .weekly-ministry-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .weekly-empty {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .drawer { width: 100vw; }
+      .main-content { padding: 16px; }
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    /* ── Card action buttons ── */
+    .event-card { position: relative; }
+    .card-actions {
+      display: none;
+      position: absolute;
+      top: 6px; right: 8px;
+      gap: 4px;
+      z-index: 2;
+    }
+    .event-card:hover .card-actions { display: flex; }
+    .card-action-btn {
+      border: none;
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      line-height: 1.4;
+      transition: background 0.15s;
+    }
+    .card-action-btn.edit { background: #ebf4ff; color: #2b6cb0; }
+    .card-action-btn.edit:hover { background: #bee3f8; }
+    .card-action-btn.del  { background: #fff5f5; color: #c53030; }
+    .card-action-btn.del:hover  { background: #fed7d7; }
+
+    /* ── Add event button ── */
+    .add-event-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: var(--radius);
+      padding: 7px 14px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .add-event-btn:hover { background: var(--primary-light); }
+
+    /* ── Edit modal ── */
+    .edit-modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 300;
+      align-items: center; justify-content: center;
+    }
+    .edit-modal-backdrop.open { display: flex; }
+    .edit-modal {
+      background: var(--card-bg); border-radius: 12px;
+      padding: 24px; width: 92%; max-width: 440px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .edit-modal h3 { margin: 0 0 16px; font-size: 1rem; color: var(--text-main); }
+    .edit-field { margin-bottom: 12px; }
+    .edit-field label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
+    .edit-field input, .edit-field select {
+      width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;
+      background: var(--bg);
+    }
+    .edit-field input:focus { outline: none; border-color: var(--primary); }
+    .edit-teams-grid {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+    }
+    .edit-team-chip {
+      padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;
+      cursor: pointer; border: 2px solid transparent;
+      transition: all 0.15s; user-select: none;
+    }
+    .edit-team-chip.selected { border-color: #1a3a5c; font-weight: 700; }
+    .edit-modal-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+    .edit-modal-actions button { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    .btn-cancel { background: var(--border); color: var(--text-main); }
+    .btn-save   { background: var(--primary); color: #fff; }
+    .btn-save:hover { background: var(--primary-light); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="header-title">GMC 2026 연간 사역</div>
+  <div class="header-actions">
+    <a class="dash-link" href="ministry-dashboard.html">주간 대시보드 →</a>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">월별 보기</div>
+    <div id="monthList"></div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="team-tabs" id="teamTabs"></div>
+      <select class="sort-select" id="sortSelect">
+        <option value="date">날짜순</option>
+        <option value="team">팀별</option>
+      </select>
+      <button class="add-event-btn" onclick="openEditModal(null)">+ 추가</button>
+    </div>
+    <!-- Event list -->
+    <div id="eventList"></div>
+  </main>
+</div>
+
+<!-- Edit/Add Event Modal -->
+<div class="edit-modal-backdrop" id="editModalBackdrop">
+  <div class="edit-modal">
+    <h3 id="editModalTitle">사역 추가</h3>
+    <div class="edit-field">
+      <label>제목</label>
+      <input type="text" id="editTitle" placeholder="사역 제목" />
+    </div>
+    <div class="edit-field">
+      <label>날짜 표시 (예: 5/16(토), 5/16~5/22)</label>
+      <input type="text" id="editDateStr" placeholder="5/16(토)" />
+    </div>
+    <div class="edit-field">
+      <label>날짜 정렬 (MM-DD 형식, 예: 05-16)</label>
+      <input type="text" id="editDateSort" placeholder="05-16" oninput="onDateSortInput(this.value)" />
+    </div>
+    <div class="edit-field">
+      <label>담당 팀 (복수 선택 가능)</label>
+      <div class="edit-teams-grid" id="editTeamsGrid"></div>
+    </div>
+    <div class="edit-modal-actions">
+      <button class="btn-cancel" onclick="closeEditModal()">취소</button>
+      <button class="btn-save" onclick="saveEditModal()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title-row">
+      <div class="drawer-title" id="drawerTitle"></div>
+      <button class="drawer-close" id="drawerClose">✕</button>
+    </div>
+    <div class="drawer-date" id="drawerDate"></div>
+    <div class="drawer-teams" id="drawerTeams"></div>
+  </div>
+
+  <div class="status-row" id="statusRow">
+    <div class="status-chip" data-status="planned" onclick="setStatus('planned')">계획중</div>
+    <div class="status-chip" data-status="inprogress" onclick="setStatus('inprogress')">진행중</div>
+    <div class="status-chip" data-status="done" onclick="setStatus('done')">완료</div>
+    <div class="status-chip" data-status="hold" onclick="setStatus('hold')">보류</div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="todo" onclick="switchTab('todo')">✅ 할 일</button>
+    <button class="tab-btn" data-tab="progress" onclick="switchTab('progress')">📝 사역 내용</button>
+    <button class="tab-btn" data-tab="notes" onclick="switchTab('notes')">📌 참고 사항</button>
+    <button class="tab-btn" data-tab="weekly" onclick="switchTab('weekly')">📋 주간 사역</button>
+  </div>
+
+  <div class="tab-pane active" id="pane-todo">
+    <div class="todo-input-row">
+      <input type="text" class="todo-input" id="todoInput" placeholder="할 일을 입력하고 Enter" />
+      <button class="todo-add-btn" onclick="addTodo()">추가</button>
+    </div>
+    <div class="todo-list" id="todoList"></div>
+  </div>
+
+  <div class="tab-pane" id="pane-progress">
+    <textarea class="notes-textarea" id="progressArea" placeholder="사역 내용을 기록하세요..."></textarea>
+    <div class="auto-save-hint">자동 저장됩니다</div>
+  </div>
+
+  <div class="tab-pane" id="pane-notes">
+    <textarea class="notes-textarea" id="notesArea" placeholder="참고 사항을 기록하세요..."></textarea>
+    <div class="auto-save-hint">자동 저장됩니다</div>
+  </div>
+
+  <div class="tab-pane" id="pane-weekly">
+    <div id="weeklyTodoContainer">
+      <div class="todo-empty" style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.8rem;">불러오는 중...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TEAM_COLORS = {
+  '예배드림팀':  '#c8973e',
+  '목회지원팀':  '#2d5f8a',
+  '제자섬김팀':  '#2f855a',
+  '목장만남팀':  '#6b46c1',
+  '선교사역팀':  '#c53030',
+  '교육세움팀':  '#2b6cb0',
+  '영어회중팀':  '#276749',
+  '이웃사랑팀':  '#b7791f',
+  '시설관리팀':  '#553c9a',
+  '행정운영팀':  '#2c7a7b',
+};
+
+const ANNUAL_EVENTS = [
+  // ── 1월 ──
+  {id:"jan_01",month:1,dateStr:"12/29~1/3",dateSort:"01-03",title:"연말연시 특별새벽기도회",teams:["예배드림팀"]},
+  {id:"jan_02",month:1,dateStr:"1/3(토)",dateSort:"01-03",title:"직분자 산상 수련회",teams:["목회지원팀"]},
+  {id:"jan_03",month:1,dateStr:"1/4(주)",dateSort:"01-04",title:"성경통독/필사 시상",teams:["제자섬김팀"]},
+  {id:"jan_04",month:1,dateStr:"1/5~1/9",dateSort:"01-05",title:"성경 통독 집회",teams:["제자섬김팀"]},
+  {id:"jan_05",month:1,dateStr:"1/5~1/8",dateSort:"01-05",title:"CM Teacher's Conference",teams:["교육세움팀"]},
+  {id:"jan_06",month:1,dateStr:"1/11(주)",dateSort:"01-11",title:"정기제직회",teams:["목회지원팀"]},
+  {id:"jan_07",month:1,dateStr:"1/11~2/22",dateSort:"01-11",title:"겨울학기 훈련모임",teams:["제자섬김팀"]},
+  {id:"jan_08",month:1,dateStr:"1/16~1/17",dateSort:"01-16",title:"PreK Teacher's Training",teams:["교육세움팀"]},
+  {id:"jan_09",month:1,dateStr:"1/17(토)",dateSort:"01-17",title:"상반기 토요목자모임 개강",teams:["목장만남팀"]},
+  {id:"jan_10",month:1,dateStr:"1/17(토)",dateSort:"01-17",title:"EM Leader's Training",teams:["영어회중팀"]},
+  {id:"jan_11",month:1,dateStr:"1/18(주)",dateSort:"01-18",title:"상반기 목장 개강",teams:["목장만남팀"]},
+  {id:"jan_12",month:1,dateStr:"1/24(토)",dateSort:"01-24",title:"Youth Outing",teams:["교육세움팀"]},
+  {id:"jan_13",month:1,dateStr:"1/24(토)",dateSort:"01-24",title:"양로원 사역 시작",teams:["이웃사랑팀"]},
+  {id:"jan_14",month:1,dateStr:"1/25(주)",dateSort:"01-25",title:"DC 노숙자 사역 시작",teams:["이웃사랑팀"]},
+  {id:"jan_15",month:1,dateStr:"1/25(주)",dateSort:"01-25",title:"정기 사무총회",teams:["목회지원팀"]},
+  {id:"jan_16",month:1,dateStr:"1/27(화)",dateSort:"01-27",title:"워싱턴 원로목사회 신년 하례예배",teams:["목회지원팀"]},
+  // ── 2월 ──
+  {id:"feb_01",month:2,dateStr:"2/1~2/22",dateSort:"02-01",title:"선교의 달",teams:["선교사역팀"]},
+  {id:"feb_02",month:2,dateStr:"2/1~3/1",dateSort:"02-01",title:"1기 새가족반",teams:["목장만남팀"]},
+  {id:"feb_03",month:2,dateStr:"2/1~2/22",dateSort:"02-01",title:"CM Discipleship Training",teams:["교육세움팀"]},
+  {id:"feb_04",month:2,dateStr:"2/7(토)",dateSort:"02-07",title:"봄학기 한국학교 개강",teams:["교육세움팀"]},
+  {id:"feb_05",month:2,dateStr:"2/8(주)",dateSort:"02-08",title:"주의 만찬",teams:["예배드림팀"]},
+  {id:"feb_06",month:2,dateStr:"2/15(주)",dateSort:"02-15",title:"EM Family Meeting",teams:["영어회중팀"]},
+  {id:"feb_07",month:2,dateStr:"2/21(토)",dateSort:"02-21",title:"전도폭발 상반기 리트릿",teams:["선교사역팀"]},
+  {id:"feb_08",month:2,dateStr:"2/22(주)",dateSort:"02-22",title:"선교 헌신 서약",teams:["선교사역팀"]},
+  {id:"feb_09",month:2,dateStr:"2/28~3/21",dateSort:"02-28",title:"신임목자훈련",teams:["목장만남팀"]},
+  // ── 3월 ──
+  {id:"mar_01",month:3,dateStr:"3/1(주)",dateSort:"03-01",title:"1기 새가족 환영회",teams:["목장만남팀"]},
+  {id:"mar_02",month:3,dateStr:"3/7~5/30",dateSort:"03-07",title:"봄학기 시니어 토요학교 및 목장모임",teams:["목장만남팀"]},
+  {id:"mar_03",month:3,dateStr:"3/7~5/30",dateSort:"03-07",title:"시니어 전도폭발 8기 훈련",teams:["선교사역팀"]},
+  {id:"mar_04",month:3,dateStr:"3/7(토)",dateSort:"03-07",title:"전도폭발 개강예배 및 만찬",teams:["선교사역팀"]},
+  {id:"mar_05",month:3,dateStr:"3/8~6/28",dateSort:"03-08",title:"봄학기 훈련모임",teams:["제자섬김팀"]},
+  {id:"mar_06",month:3,dateStr:"3/8(주)",dateSort:"03-08",title:"단기선교 오리엔테이션 및 전체 훈련",teams:["선교사역팀"]},
+  {id:"mar_07",month:3,dateStr:"3/8~5/24",dateSort:"03-08",title:"4기 돌봄사역자 훈련",teams:["제자섬김팀"]},
+  {id:"mar_08",month:3,dateStr:"3/10~5/12",dateSort:"03-10",title:"전도폭발 76기 / 영어 전도폭발 8기 훈련",teams:["선교사역팀"]},
+  {id:"mar_09",month:3,dateStr:"3/15~4/26",dateSort:"03-15",title:"중보기도학교",teams:["예배드림팀"]},
+  {id:"mar_10",month:3,dateStr:"3/20~3/22",dateSort:"03-20",title:"KM 청년부 봄 수련회",teams:["목장만남팀"]},
+  {id:"mar_11",month:3,dateStr:"3/21(토)",dateSort:"03-21",title:"투게더 모임 (4동산 연합목장모임)",teams:["목장만남팀"]},
+  {id:"mar_12",month:3,dateStr:"3/22~4/5",dateSort:"03-22",title:"애니 암스트롱 선교 헌금",teams:["선교사역팀"]},
+  {id:"mar_13",month:3,dateStr:"3/28(토)",dateSort:"03-28",title:"Youth Outing",teams:["교육세움팀"]},
+  {id:"mar_14",month:3,dateStr:"3/29(주)",dateSort:"03-29",title:"신임 목자/마을장 임명식",teams:["목장만남팀"]},
+  {id:"mar_15",month:3,dateStr:"3/29(주)",dateSort:"03-29",title:"정기제직회",teams:["목회지원팀"]},
+  {id:"mar_16",month:3,dateStr:"3/30~4/4",dateSort:"03-30",title:"고난 주간 특별새벽기도회",teams:["예배드림팀"]},
+  // ── 4월 ──
+  {id:"apr_01",month:4,dateStr:"4/3(금)",dateSort:"04-03",title:"성금요예배/수난절 음악회/주의 만찬",teams:["예배드림팀"]},
+  {id:"apr_02",month:4,dateStr:"4/3(금)",dateSort:"04-03",title:"CM & Youth Good Friday Service",teams:["교육세움팀"]},
+  {id:"apr_03",month:4,dateStr:"4/5(주)",dateSort:"04-05",title:"부활주일 예배/침례식",teams:["예배드림팀","목장만남팀"]},
+  {id:"apr_04",month:4,dateStr:"4/5(주)",dateSort:"04-05",title:"EM Picnic",teams:["영어회중팀"]},
+  {id:"apr_05",month:4,dateStr:"4/11(토)",dateSort:"04-11",title:"전교인 대청소",teams:["시설관리팀"]},
+  {id:"apr_06",month:4,dateStr:"4/11(토)",dateSort:"04-11",title:"히스패닉 이웃사랑잔치",teams:["이웃사랑팀"]},
+  {id:"apr_07",month:4,dateStr:"4/18(토)",dateSort:"04-18",title:"가정 세미나",teams:["제자섬김팀"]},
+  {id:"apr_08",month:4,dateStr:"4/19(주)",dateSort:"04-19",title:"수화 찬양대 예배 특송",teams:["선교사역팀"]},
+  {id:"apr_09",month:4,dateStr:"4/24~4/25",dateSort:"04-24",title:"Youth Teacher's Conference",teams:["교육세움팀"]},
+  {id:"apr_10",month:4,dateStr:"4/25(토)",dateSort:"04-25",title:"장애인 음악회",teams:["선교사역팀"]},
+  {id:"apr_11",month:4,dateStr:"4/25~6/13",dateSort:"04-25",title:"일대일 양육자 훈련",teams:["제자섬김팀"]},
+  // ── 5월 ──
+  {id:"may_01",month:5,dateStr:"5/3(주)",dateSort:"05-03",title:"Children's Day 다음세대 연합예배",teams:["교육세움팀","예배드림팀"]},
+  {id:"may_02",month:5,dateStr:"5/3~5/31",dateSort:"05-03",title:"2기 새가족반",teams:["목장만남팀"]},
+  {id:"may_03",month:5,dateStr:"5/3(주)",dateSort:"05-03",title:"다니엘중보기도용사 전체모임",teams:["예배드림팀"]},
+  {id:"may_04",month:5,dateStr:"5/4(월)",dateSort:"05-04",title:"97기 다니엘 중보기도사역 시작",teams:["예배드림팀"]},
+  {id:"may_05",month:5,dateStr:"5/10(주)",dateSort:"05-10",title:"Mother's Day",teams:["교육세움팀","예배드림팀"]},
+  {id:"may_06",month:5,dateStr:"5/15(금)",dateSort:"05-15",title:"제자훈련 종강 예배",teams:["제자섬김팀"]},
+  {id:"may_07",month:5,dateStr:"5/16(토)",dateSort:"05-16",title:"경배와 찬양부 수련회",teams:["예배드림팀"]},
+  {id:"may_08",month:5,dateStr:"5/17(주)",dateSort:"05-17",title:"전도폭발훈련 수료예배 및 만찬",teams:["선교사역팀"]},
+  {id:"may_09",month:5,dateStr:"5/17(주)",dateSort:"05-17",title:"정기제직회",teams:["목회지원팀"]},
+  {id:"may_10",month:5,dateStr:"5/23(토)",dateSort:"05-23",title:"봄학기 한국학교 종강식",teams:["교육세움팀"]},
+  {id:"may_11",month:5,dateStr:"5/24(주)",dateSort:"05-24",title:"단기선교 기금 마련 잔치",teams:["선교사역팀"]},
+  {id:"may_12",month:5,dateStr:"5/30(토)",dateSort:"05-30",title:"EM Missions Benefit Concert",teams:["영어회중팀"]},
+  {id:"may_13",month:5,dateStr:"5/31(주)",dateSort:"05-31",title:"2기 새가족 환영회",teams:["목장만남팀"]},
+  // ── 6월 ──
+  {id:"jun_01",month:6,dateStr:"6/6(토)",dateSort:"06-06",title:"상반기 토요목자모임 종강",teams:["목장만남팀"]},
+  {id:"jun_02",month:6,dateStr:"6/7(주)",dateSort:"06-07",title:"주의 만찬",teams:["예배드림팀"]},
+  {id:"jun_03",month:6,dateStr:"6/14(주)",dateSort:"06-14",title:"Graduation Service",teams:["교육세움팀"]},
+  {id:"jun_04",month:6,dateStr:"6/18~6/20",dateSort:"06-18",title:"커넥트 리트릿",teams:["목장만남팀"]},
+  {id:"jun_05",month:6,dateStr:"6/21(주)",dateSort:"06-21",title:"Father's Day",teams:["교육세움팀","예배드림팀"]},
+  {id:"jun_06",month:6,dateStr:"6/23~6/27",dateSort:"06-23",title:"VBS/VBX",teams:["교육세움팀"]},
+  {id:"jun_07",month:6,dateStr:"6/28(주)",dateSort:"06-28",title:"Promotion Sunday",teams:["교육세움팀"]},
+  {id:"jun_08",month:6,dateStr:"6/28(주)",dateSort:"06-28",title:"EM Picnic",teams:["영어회중팀"]},
+  {id:"jun_09",month:6,dateStr:"6/29~7/2",dateSort:"06-29",title:"미주 코스타",teams:[]},
+  {id:"jun_10",month:6,dateStr:"6/29~7/7",dateSort:"06-29",title:"샬롬 라틴아메리카 단기선교",teams:["선교사역팀"]},
+  // ── 7월 ──
+  {id:"jul_01",month:7,dateStr:"7/4(토)",dateSort:"07-04",title:"선교적 삶 세미나",teams:["제자섬김팀"]},
+  {id:"jul_02",month:7,dateStr:"7/5~8/30",dateSort:"07-05",title:"여름학기 훈련모임",teams:["제자섬김팀"]},
+  {id:"jul_03",month:7,dateStr:"7/16~7/18",dateSort:"07-16",title:"동부 밀알 사랑의 캠프",teams:["선교사역팀"]},
+  {id:"jul_04",month:7,dateStr:"7/19~7/25",dateSort:"07-19",title:"북미 원주민 단기선교",teams:["선교사역팀"]},
+  {id:"jul_05",month:7,dateStr:"7/26(주)",dateSort:"07-26",title:"정기제직회",teams:["목회지원팀"]},
+  {id:"jul_06",month:7,dateStr:"TBD",dateSort:"07-31",title:"제주 중국인 단기선교",teams:["선교사역팀"]},
+  // ── 8월 ──
+  {id:"aug_01",month:8,dateStr:"8/2(주)",dateSort:"08-02",title:"주의 만찬",teams:["예배드림팀"]},
+  {id:"aug_02",month:8,dateStr:"8/6~8/9",dateSort:"08-06",title:"Youth Summer Retreat",teams:["교육세움팀"]},
+  {id:"aug_03",month:8,dateStr:"8/8(토)",dateSort:"08-08",title:"전도폭발 하반기 리트릿",teams:["선교사역팀"]},
+  {id:"aug_04",month:8,dateStr:"8/15(토)",dateSort:"08-15",title:"CM Teacher's Training",teams:["교육세움팀"]},
+  {id:"aug_05",month:8,dateStr:"8/16(주)",dateSort:"08-16",title:"다니엘 중보기도용사 전체모임",teams:["예배드림팀"]},
+  {id:"aug_06",month:8,dateStr:"8/22(토)",dateSort:"08-22",title:"목자 산상 수련회",teams:["목장만남팀"]},
+  {id:"aug_07",month:8,dateStr:"8/29(토)",dateSort:"08-29",title:"EM Leader's Training",teams:["영어회중팀"]},
+  {id:"aug_08",month:8,dateStr:"8/30(주)",dateSort:"08-30",title:"YM Open House",teams:["교육세움팀"]},
+  // ── 9월 ──
+  {id:"sep_01",month:9,dateStr:"9/5(토)",dateSort:"09-05",title:"하반기 토요목자모임 개강",teams:["목장만남팀"]},
+  {id:"sep_02",month:9,dateStr:"9/5(토)",dateSort:"09-05",title:"가을학기 한국학교 개강",teams:["교육세움팀"]},
+  {id:"sep_03",month:9,dateStr:"9/5~9/26",dateSort:"09-05",title:"신임목자 훈련",teams:["목장만남팀"]},
+  {id:"sep_04",month:9,dateStr:"9/5~11/21",dateSort:"09-05",title:"가을학기 시니어 토요학교 및 목장모임",teams:["목장만남팀"]},
+  {id:"sep_05",month:9,dateStr:"9/5~11/21",dateSort:"09-05",title:"시니어 전도폭발 7기 훈련",teams:["선교사역팀"]},
+  {id:"sep_06",month:9,dateStr:"9/6(주)",dateSort:"09-06",title:"하반기 목장 개강",teams:["목장만남팀"]},
+  {id:"sep_07",month:9,dateStr:"9/6(주)",dateSort:"09-06",title:"단기선교 기금 마련 잔치",teams:["선교사역팀"]},
+  {id:"sep_08",month:9,dateStr:"9/6~12/20",dateSort:"09-06",title:"가을학기 훈련모임",teams:["제자섬김팀"]},
+  {id:"sep_09",month:9,dateStr:"9/6(주)",dateSort:"09-06",title:"하반기 전도폭발 개강예배 및 만찬",teams:["선교사역팀"]},
+  {id:"sep_10",month:9,dateStr:"9/7(월)",dateSort:"09-07",title:"전교인 피크닉",teams:["행정운영팀"]},
+  {id:"sep_11",month:9,dateStr:"9/8~11/10",dateSort:"09-08",title:"전도폭발 77기 / 영어 전도폭발 9기 훈련",teams:["선교사역팀"]},
+  {id:"sep_12",month:9,dateStr:"9/11(금)",dateSort:"09-11",title:"제자훈련/사역훈련 개강예배 및 오리엔테이션",teams:["제자섬김팀"]},
+  {id:"sep_13",month:9,dateStr:"9/13(주)",dateSort:"09-13",title:"정기 제직회",teams:["목회지원팀"]},
+  {id:"sep_14",month:9,dateStr:"9/13~11/29",dateSort:"09-13",title:"일대일 동반자반",teams:["제자섬김팀"]},
+  {id:"sep_15",month:9,dateStr:"9/20~10/25",dateSort:"09-20",title:"3기 새가족반",teams:["목장만남팀"]},
+  {id:"sep_16",month:9,dateStr:"9/20(주)",dateSort:"09-20",title:"CM Open House",teams:["교육세움팀"]},
+  {id:"sep_17",month:9,dateStr:"9/27(주)",dateSort:"09-27",title:"정기 사무총회",teams:["목회지원팀"]},
+  // ── 10월 ──
+  {id:"oct_01",month:10,dateStr:"10/3(토)",dateSort:"10-03",title:"전교인 대청소",teams:["시설관리팀"]},
+  {id:"oct_02",month:10,dateStr:"10/4(주)",dateSort:"10-04",title:"주의 만찬",teams:["예배드림팀"]},
+  {id:"oct_03",month:10,dateStr:"10/6~10/14",dateSort:"10-06",title:"베트남 단기선교",teams:["선교사역팀"]},
+  {id:"oct_04",month:10,dateStr:"10/9~10/11",dateSort:"10-09",title:"EM Family Retreat",teams:["영어회중팀"]},
+  {id:"oct_05",month:10,dateStr:"10/11(주)",dateSort:"10-11",title:"목자/마을장 임명식",teams:["목장만남팀"]},
+  {id:"oct_06",month:10,dateStr:"10/18(주)",dateSort:"10-18",title:"수화찬양대 예배 특송",teams:["선교사역팀"]},
+  {id:"oct_07",month:10,dateStr:"10/21~10/23",dateSort:"10-21",title:"목회자 전략 수련회",teams:["목회지원팀"]},
+  {id:"oct_08",month:10,dateStr:"10/25(주)",dateSort:"10-25",title:"3기 새가족 환영회",teams:["목장만남팀"]},
+  {id:"oct_09",month:10,dateStr:"10/25~11/8",dateSort:"10-25",title:"돌봄사역 연장교육",teams:["제자섬김팀"]},
+  {id:"oct_10",month:10,dateStr:"10/31(금)",dateSort:"10-31",title:"Hallelujah Night",teams:["교육세움팀"]},
+  // ── 11월 ──
+  {id:"nov_01",month:11,dateStr:"11/1(주)",dateSort:"11-01",title:"투게더 목장모임 (4동산 연합목장모임)",teams:["목장만남팀"]},
+  {id:"nov_02",month:11,dateStr:"11/1~11/29",dateSort:"11-01",title:"중보기도학교",teams:["예배드림팀"]},
+  {id:"nov_03",month:11,dateStr:"11/1~12/13",dateSort:"11-01",title:"지역사회 성탄 선물 및 노숙자 추수감사절/성탄 선물 수집",teams:["이웃사랑팀"]},
+  {id:"nov_04",month:11,dateStr:"11/6~11/8",dateSort:"11-06",title:"창립 52주년 기념 부흥회",teams:["예배드림팀"]},
+  {id:"nov_05",month:11,dateStr:"11/8(주)",dateSort:"11-08",title:"창립 52주년 기념 주일",teams:["예배드림팀"]},
+  {id:"nov_06",month:11,dateStr:"11/16~11/21",dateSort:"11-16",title:"추수감사 특별 새벽기도회",teams:["예배드림팀"]},
+  {id:"nov_07",month:11,dateStr:"11/22(주)",dateSort:"11-22",title:"추수감사 주일예배",teams:["예배드림팀"]},
+  {id:"nov_08",month:11,dateStr:"11/22(주)",dateSort:"11-22",title:"전도폭발훈련 수료예배 및 만찬",teams:["선교사역팀"]},
+  {id:"nov_09",month:11,dateStr:"11/22(주)",dateSort:"11-22",title:"EM Turkey Bowl & Potluck",teams:["영어회중팀"]},
+  {id:"nov_10",month:11,dateStr:"11/25~11/28",dateSort:"11-25",title:"Youth Kosta",teams:["교육세움팀"]},
+  {id:"nov_11",month:11,dateStr:"11/29~12/6",dateSort:"11-29",title:"IMB 기도주간",teams:["선교사역팀"]},
+  // ── 12월 ──
+  {id:"dec_01",month:12,dateStr:"12/5(토)",dateSort:"12-05",title:"크리스마스 지역사회 나눔 잔치",teams:["이웃사랑팀"]},
+  {id:"dec_02",month:12,dateStr:"12/5(토)",dateSort:"12-05",title:"목자/마을장 격려모임",teams:["목장만남팀"]},
+  {id:"dec_03",month:12,dateStr:"12/5(토)",dateSort:"12-05",title:"EM Leader's Appreciation",teams:["영어회중팀"]},
+  {id:"dec_04",month:12,dateStr:"12/6(주)",dateSort:"12-06",title:"다니엘 중보기도용사 전체모임",teams:["예배드림팀"]},
+  {id:"dec_05",month:12,dateStr:"12/6~12/13",dateSort:"12-06",title:"파송/후원 선교사 성탄 카드 작성 및 선물 전달",teams:["선교사역팀"]},
+  {id:"dec_06",month:12,dateStr:"12/7(월)",dateSort:"12-07",title:"98기 다니엘 중보기도사역 시작",teams:["예배드림팀"]},
+  {id:"dec_07",month:12,dateStr:"12/12(토)",dateSort:"12-12",title:"CM Christmas Musical",teams:["교육세움팀"]},
+  {id:"dec_08",month:12,dateStr:"12/13~12/25",dateSort:"12-13",title:"라티문 선교 헌금",teams:["선교사역팀"]},
+  {id:"dec_09",month:12,dateStr:"12/13(주)",dateSort:"12-13",title:"정기 제직회",teams:["목회지원팀"]},
+  {id:"dec_10",month:12,dateStr:"12/19(토)",dateSort:"12-19",title:"EM Christmas Party",teams:["영어회중팀"]},
+  {id:"dec_11",month:12,dateStr:"12/19(토)",dateSort:"12-19",title:"가을학기 한국학교 종강식",teams:["교육세움팀"]},
+  {id:"dec_12",month:12,dateStr:"12/20(주)",dateSort:"12-20",title:"성탄 주일예배",teams:["예배드림팀"]},
+  {id:"dec_13",month:12,dateStr:"12/20(주)",dateSort:"12-20",title:"CM/Youth Christmas Party",teams:["교육세움팀"]},
+  {id:"dec_14",month:12,dateStr:"12/25(금)",dateSort:"12-25",title:"성탄절 예배/침례식",teams:["예배드림팀","목장만남팀"]},
+  {id:"dec_15",month:12,dateStr:"12/25(금)",dateSort:"12-25",title:"성탄절 DC 노숙자 봉사",teams:["이웃사랑팀"]},
+  {id:"dec_16",month:12,dateStr:"12/27~12/30",dateSort:"12-27",title:"Youth Winter Retreat",teams:["교육세움팀"]},
+  {id:"dec_17",month:12,dateStr:"12/28~12/30",dateSort:"12-28",title:"CM Upper Grade Retreat",teams:["교육세움팀"]},
+  {id:"dec_18",month:12,dateStr:"12/28~1/2",dateSort:"12-28",title:"연말연시 특별새벽기도회",teams:["예배드림팀"]},
+  {id:"dec_19",month:12,dateStr:"12/31(목)",dateSort:"12-31",title:"송구영신예배/주의만찬",teams:["예배드림팀"]},
+  // ── gcal 1월 ──
+  {id:"gcal_0102_00",month:1,dateStr:"1/2",dateSort:"01-02",title:"시무식",teams:["목회지원팀"]},
+  {id:"gcal_0104_01",month:1,dateStr:"1/4",dateSort:"01-04",title:"성경통독/필사자 시상",teams:["제자섬김팀"]},
+  {id:"gcal_0104_02",month:1,dateStr:"1/4",dateSort:"01-04",title:"겨울학기 훈련 모집(~2/22)",teams:["제자섬김팀"]},
+  {id:"gcal_0109_03",month:1,dateStr:"1/9",dateSort:"01-09",title:"성경통독집회",teams:["예배드림팀","제자섬김팀"]},
+  {id:"gcal_0110_04",month:1,dateStr:"1/10",dateSort:"01-10",title:"정기실행위원회의",teams:["목회지원팀"]},
+  {id:"gcal_0113_05",month:1,dateStr:"1/13",dateSort:"01-13",title:"사역자 식사 - 손인자 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0116_06",month:1,dateStr:"1/16",dateSort:"01-16",title:"KM 목회자 식사 - 김미순 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0117_07",month:1,dateStr:"1/17",dateSort:"01-17",title:"은퇴안수집사 식사 대접",teams:["목회지원팀"]},
+  {id:"gcal_0120_08",month:1,dateStr:"1/20",dateSort:"01-20",title:"면담 - 이기원 형제님",teams:["목회지원팀"]},
+  {id:"gcal_0121_09",month:1,dateStr:"1/21",dateSort:"01-21",title:"샬롬 사역 회의",teams:["선교사역팀"]},
+  {id:"gcal_0121_10",month:1,dateStr:"1/21",dateSort:"01-21",title:"사역자 식사 - 이숙명 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0123_11",month:1,dateStr:"1/23",dateSort:"01-23",title:"Meeting with Pastor Rocha",teams:["목회지원팀"]},
+  {id:"gcal_0124_12",month:1,dateStr:"1/24",dateSort:"01-24",title:"Interview with Pastor Ernesto Carranza",teams:["목회지원팀"]},
+  {id:"gcal_0127_13",month:1,dateStr:"1/27",dateSort:"01-27",title:"과테말라 선교사 협회와 미팅",teams:["선교사역팀"]},
+  {id:"gcal_0131_14",month:1,dateStr:"1/31",dateSort:"01-31",title:"장재훈/이명준 목사님 영접",teams:["목회지원팀"]},
+  {id:"gcal_0131_15",month:1,dateStr:"1/31",dateSort:"01-31",title:"아침식사 with 장재훈/이명준 목사님",teams:["목회지원팀"]},
+  {id:"gcal_0131_16",month:1,dateStr:"1/31",dateSort:"01-31",title:"선교 비전 세미나 자료 준비",teams:["선교사역팀"]},
+  {id:"gcal_0131_17",month:1,dateStr:"1/31",dateSort:"01-31",title:"선교 비전 세미나",teams:["선교사역팀"]},
+  {id:"gcal_0131_18",month:1,dateStr:"1/31",dateSort:"01-31",title:"점심식사 with 장재훈/이명준 목사님",teams:["목회지원팀"]},
+  {id:"gcal_0131_19",month:1,dateStr:"1/31",dateSort:"01-31",title:"저녁식사 with 장재훈/이명준 목사님",teams:["목회지원팀"]},
+  // ── gcal 2월 ──
+  {id:"gcal_0201_20",month:2,dateStr:"2/1",dateSort:"02-01",title:"이명준 목사님 라이드",teams:["목회지원팀"]},
+  {id:"gcal_0201_21",month:2,dateStr:"2/1",dateSort:"02-01",title:"식사 - 이명준 목사님",teams:["목회지원팀"]},
+  {id:"gcal_0201_22",month:2,dateStr:"2/1",dateSort:"02-01",title:"샬롬 사역 미팅 & 저녁식사",teams:["선교사역팀"]},
+  {id:"gcal_0201_23",month:2,dateStr:"2/1",dateSort:"02-01",title:"EM Family Meeting",teams:["영어회중팀"]},
+  {id:"gcal_0205_24",month:2,dateStr:"2/5",dateSort:"02-05",title:"은퇴안수집사 크루즈 여행",teams:["목회지원팀"]},
+  {id:"gcal_0208_25",month:2,dateStr:"2/8",dateSort:"02-08",title:"새가족반",teams:["목장만남팀"]},
+  {id:"gcal_0208_26",month:2,dateStr:"2/8",dateSort:"02-08",title:"정기사무총회",teams:["목회지원팀"]},
+  {id:"gcal_0208_27",month:2,dateStr:"2/8",dateSort:"02-08",title:"사역자 식사 - 김두현 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0210_28",month:2,dateStr:"2/10",dateSort:"02-10",title:"원로목사회 목사님들 방문",teams:["목회지원팀"]},
+  {id:"gcal_0212_29",month:2,dateStr:"2/12",dateSort:"02-12",title:"미팅 - 홍명순, 박보배 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0214_30",month:2,dateStr:"2/14",dateSort:"02-14",title:"정기실행위원회의",teams:["목회지원팀"]},
+  {id:"gcal_0215_31",month:2,dateStr:"2/15",dateSort:"02-15",title:"새가족반",teams:["목장만남팀"]},
+  {id:"gcal_0215_32",month:2,dateStr:"2/15",dateSort:"02-15",title:"사역자 수련회",teams:["예배드림팀","목회지원팀"]},
+  {id:"gcal_0217_33",month:2,dateStr:"2/17",dateSort:"02-17",title:"심방 - 강형천 장로님",teams:["목회지원팀"]},
+  {id:"gcal_0218_34",month:2,dateStr:"2/18",dateSort:"02-18",title:"사역자 식사 - 남선향 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0222_35",month:2,dateStr:"2/22",dateSort:"02-22",title:"기아대책 유원식 회장 & 이상필 간사 방문 영접",teams:["목회지원팀"]},
+  {id:"gcal_0222_36",month:2,dateStr:"2/22",dateSort:"02-22",title:"새가족반",teams:["목장만남팀"]},
+  {id:"gcal_0228_37",month:2,dateStr:"2/28",dateSort:"02-28",title:"식사 - 최진식 집사님 & 유영익 목사님",teams:["목회지원팀"]},
+  // ── gcal 3월 ──
+  {id:"gcal_0301_38",month:3,dateStr:"3/1",dateSort:"03-01",title:"새가족반",teams:["목장만남팀"]},
+  {id:"gcal_0309_39",month:3,dateStr:"3/9",dateSort:"03-09",title:"선교 코칭 - 열린문장로교회",teams:["선교사역팀"]},
+  {id:"gcal_0314_40",month:3,dateStr:"3/14",dateSort:"03-14",title:"정기실행위원회의",teams:["목회지원팀"]},
+  {id:"gcal_0316_41",month:3,dateStr:"3/16",dateSort:"03-16",title:"샬롬사역 미팅",teams:["선교사역팀"]},
+  {id:"gcal_0317_42",month:3,dateStr:"3/17",dateSort:"03-17",title:"아침식사 대접 - 이미미 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0318_43",month:3,dateStr:"3/18",dateSort:"03-18",title:"사역자 식사 - 박명옥 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0321_44",month:3,dateStr:"3/21",dateSort:"03-21",title:"은퇴안수집사 모임 - 설교 요청",teams:["목회지원팀"]},
+  {id:"gcal_0321_45",month:3,dateStr:"3/21",dateSort:"03-21",title:"노진준 목사님 교회 문 열어드리기",teams:["목회지원팀"]},
+  {id:"gcal_0321_46",month:3,dateStr:"3/21",dateSort:"03-21",title:"CM Lock In",teams:["교육세움팀"]},
+  {id:"gcal_0321_47",month:3,dateStr:"3/21",dateSort:"03-21",title:"3동산 목자 모임",teams:["목장만남팀"]},
+  {id:"gcal_0321_48",month:3,dateStr:"3/21",dateSort:"03-21",title:"EM 목자 모임",teams:["목장만남팀","영어회중팀"]},
+  {id:"gcal_0321_49",month:3,dateStr:"3/21",dateSort:"03-21",title:"4동산 찬양과 기도의 밤",teams:["예배드림팀"]},
+  {id:"gcal_0323_50",month:3,dateStr:"3/23",dateSort:"03-23",title:"단기선교 팀장 교육",teams:["선교사역팀"]},
+  {id:"gcal_0325_51",month:3,dateStr:"3/25",dateSort:"03-25",title:"말씀 나눔 - 정준호/윤주 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0327_52",month:3,dateStr:"3/27",dateSort:"03-27",title:"목회자 은퇴연금 세미나",teams:["목회지원팀"]},
+  {id:"gcal_0328_53",month:3,dateStr:"3/28",dateSort:"03-28",title:"침례 교육",teams:["예배드림팀"]},
+  {id:"gcal_0329_54",month:3,dateStr:"3/29",dateSort:"03-29",title:"장애인 선교부 모임",teams:["선교사역팀","이웃사랑팀"]},
+  {id:"gcal_0329_55",month:3,dateStr:"3/29",dateSort:"03-29",title:"장애인 선교부 피크닉",teams:["선교사역팀","이웃사랑팀"]},
+  // ── gcal 4월 ──
+  {id:"gcal_0401_56",month:4,dateStr:"4/1",dateSort:"04-01",title:"교역자 가족 식사",teams:["목회지원팀"]},
+  {id:"gcal_0408_57",month:4,dateStr:"4/8",dateSort:"04-08",title:"사역자 부부 식사 - 신혜숙 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0408_58",month:4,dateStr:"4/8",dateSort:"04-08",title:"백인상 집사님 구순 잔치",teams:["목회지원팀"]},
+  {id:"gcal_0417_59",month:4,dateStr:"4/17",dateSort:"04-17",title:"Youth Lock In",teams:["교육세움팀"]},
+  {id:"gcal_0418_60",month:4,dateStr:"4/18",dateSort:"04-18",title:"정기실행위원회의",teams:["목회지원팀"]},
+  {id:"gcal_0422_61",month:4,dateStr:"4/22",dateSort:"04-22",title:"목회자 식사 (이숙명 집사님)",teams:["목회지원팀"]},
+  // ── gcal 5월 ──
+  {id:"gcal_0513_62",month:5,dateStr:"5/13",dateSort:"05-13",title:"주택 구입 설명 & 식사 - 주옥임 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0516_63",month:5,dateStr:"5/16",dateSort:"05-16",title:"찬양팀 수련회",teams:["예배드림팀"]},
+  {id:"gcal_0519_64",month:5,dateStr:"5/19",dateSort:"05-19",title:"고별예배 - 김복례 집사님",teams:["예배드림팀"]},
+  {id:"gcal_0520_65",month:5,dateStr:"5/20",dateSort:"05-20",title:"사역자 식사-홍명순 집사님",teams:["목회지원팀"]},
+  // ── gcal 6월 ──
+  {id:"gcal_0610_66",month:6,dateStr:"6/10",dateSort:"06-10",title:"부목사 식사 - 박명옥 집사님",teams:["목회지원팀"]},
+  {id:"gcal_0613_67",month:6,dateStr:"6/13",dateSort:"06-13",title:"상반기 토요목자모임 종강",teams:["목장만남팀"]},
+  {id:"gcal_0629_68",month:6,dateStr:"6/29",dateSort:"06-29",title:"단기선교: 샬롬 중앙아메리카",teams:["선교사역팀"]},
+  // ── gcal 7월 ──
+  {id:"gcal_0715_69",month:7,dateStr:"7/15",dateSort:"07-15",title:"Staff 가족 Lunch",teams:["목회지원팀"]},
+  {id:"gcal_0722_70",month:7,dateStr:"7/22",dateSort:"07-22",title:"제주 중국인 단기선교",teams:["선교사역팀"]},
+];
+
+// ── Storage ──
+const STORAGE_KEY = 'gmc_annual_2026';
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+function getEventData(id) {
+  const data = loadData();
+  if (!data[id]) data[id] = { status: 'planned', todos: [], progress: '', notes: '' };
+  return data[id];
+}
+function updateEventData(id, updater) {
+  const data = loadData();
+  if (!data[id]) data[id] = { status: 'planned', todos: [], progress: '', notes: '' };
+  updater(data[id]);
+  saveData(data);
+}
+
+// ── Custom event overrides (edit / delete / add) ──
+function getDeletedIds() {
+  const d = loadData();
+  return new Set(d._deleted || []);
+}
+function getEdits() {
+  return loadData()._edits || {};
+}
+function getCustomEvents() {
+  return loadData()._custom || [];
+}
+function markDeleted(id) {
+  const d = loadData();
+  d._deleted = [...new Set([...(d._deleted || []), id])];
+  saveData(d);
+}
+function saveEdit(id, fields) {
+  const d = loadData();
+  d._edits = d._edits || {};
+  d._edits[id] = { ...(d._edits[id] || {}), ...fields };
+  saveData(d);
+}
+function saveCustomEvent(evt) {
+  const d = loadData();
+  d._custom = d._custom || [];
+  const idx = d._custom.findIndex(e => e.id === evt.id);
+  if (idx >= 0) d._custom[idx] = evt; else d._custom.push(evt);
+  saveData(d);
+}
+function deleteCustomEvent(id) {
+  const d = loadData();
+  d._custom = (d._custom || []).filter(e => e.id !== id);
+  saveData(d);
+}
+
+// Returns the live event list with deletions/edits/custom applied
+function getEffectiveEvents() {
+  const deleted = getDeletedIds();
+  const edits   = getEdits();
+  const custom  = getCustomEvents();
+  const base = ANNUAL_EVENTS.filter(e => !deleted.has(e.id)).map(e => {
+    if (edits[e.id]) return { ...e, ...edits[e.id] };
+    return e;
+  });
+  return [...base, ...custom.filter(e => !deleted.has(e.id))];
+}
+
+// ── State ──
+let activeMonth = new Date().getMonth() + 1;
+if (activeMonth < 1 || activeMonth > 12) activeMonth = 5;
+let activeTeam = '전체';
+let activeSort = 'date';
+let drawerEventId = null;
+let activeTab = 'todo';
+
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+// ── Build team list ──
+function getAllTeams() {
+  const set = new Set();
+  getEffectiveEvents().forEach(e => e.teams.forEach(t => set.add(t)));
+  return [...set];
+}
+
+// ── Render sidebar ──
+function renderSidebar() {
+  const el = document.getElementById('monthList');
+  el.innerHTML = '';
+  const evts = getEffectiveEvents();
+  MONTHS.forEach((name, i) => {
+    const m = i + 1;
+    const count = evts.filter(e => e.month === m).length;
+    const item = document.createElement('div');
+    item.className = 'month-item' + (m === activeMonth ? ' active' : '');
+    item.innerHTML = `<span>${name}</span><span class="month-badge">${count}</span>`;
+    item.onclick = () => { activeMonth = m; renderAll(); };
+    el.appendChild(item);
+  });
+}
+
+// ── Render team tabs ──
+function renderTeamTabs() {
+  const el = document.getElementById('teamTabs');
+  el.innerHTML = '';
+  const teams = ['전체', ...getAllTeams()];
+  teams.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'team-tab' + (t === activeTeam ? ' active' : '');
+    btn.textContent = t;
+    if (t !== '전체' && TEAM_COLORS[t]) {
+      if (t === activeTeam) {
+        btn.style.background = TEAM_COLORS[t];
+        btn.style.borderColor = TEAM_COLORS[t];
+      } else {
+        btn.style.borderColor = TEAM_COLORS[t] + '88';
+        btn.style.color = TEAM_COLORS[t];
+      }
+    }
+    btn.onclick = () => { activeTeam = t; renderTeamTabs(); renderEventList(); };
+    el.appendChild(btn);
+  });
+}
+
+// ── Get filtered events ──
+function getFilteredEvents() {
+  let evts = getEffectiveEvents().filter(e => e.month === activeMonth);
+  if (activeTeam !== '전체') {
+    evts = evts.filter(e => e.teams.includes(activeTeam));
+  }
+  if (activeSort === 'team') {
+    evts = [...evts].sort((a, b) => {
+      const ta = a.teams[0] || '';
+      const tb = b.teams[0] || '';
+      if (ta !== tb) return ta.localeCompare(tb);
+      return a.dateSort.localeCompare(b.dateSort);
+    });
+  } else {
+    evts = [...evts].sort((a, b) => a.dateSort.localeCompare(b.dateSort));
+  }
+  return evts;
+}
+
+// ── Render event list ──
+function renderEventList() {
+  const el = document.getElementById('eventList');
+  const evts = getFilteredEvents();
+  if (!evts.length) {
+    el.innerHTML = '<div class="empty-state">해당 조건의 사역이 없습니다.</div>';
+    return;
+  }
+
+  if (activeSort === 'date') {
+    // Group by dateSort
+    const groups = {};
+    evts.forEach(e => {
+      if (!groups[e.dateSort]) groups[e.dateSort] = { dateStr: e.dateStr, events: [] };
+      groups[e.dateSort].events.push(e);
+    });
+    el.innerHTML = '';
+    Object.entries(groups).forEach(([ds, grp]) => {
+      const dg = document.createElement('div');
+      dg.className = 'date-group';
+      const dh = document.createElement('div');
+      dh.className = 'date-header';
+      dh.textContent = grp.dateStr;
+      dg.appendChild(dh);
+      grp.events.forEach(e => dg.appendChild(buildCard(e)));
+      el.appendChild(dg);
+    });
+  } else {
+    // Group by team
+    const groups = {};
+    evts.forEach(e => {
+      const t = e.teams[0] || '기타';
+      if (!groups[t]) groups[t] = [];
+      groups[t].push(e);
+    });
+    el.innerHTML = '';
+    Object.entries(groups).forEach(([team, tevts]) => {
+      const dg = document.createElement('div');
+      dg.className = 'date-group';
+      const dh = document.createElement('div');
+      dh.className = 'date-header';
+      dh.textContent = team;
+      dg.appendChild(dh);
+      tevts.forEach(e => dg.appendChild(buildCard(e)));
+      el.appendChild(dg);
+    });
+  }
+}
+
+function buildCard(evt) {
+  const evtData = getEventData(evt.id);
+  const todos = evtData.todos || [];
+  const total = todos.length;
+  const done = todos.filter(t => t.done).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const card = document.createElement('div');
+  const statusClass = 'status-' + (evtData.status || 'planned');
+  card.className = `event-card ${statusClass}`;
+  card.setAttribute('data-id', evt.id);
+
+  // Date chip
+  const dateChip = document.createElement('div');
+  dateChip.className = 'card-date';
+  dateChip.textContent = evt.dateStr;
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'card-title';
+  titleEl.textContent = evt.title;
+
+  const meta = document.createElement('div');
+  meta.className = 'card-meta';
+  evt.teams.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'team-chip';
+    chip.textContent = t;
+    chip.style.background = TEAM_COLORS[t] || '#888';
+    meta.appendChild(chip);
+  });
+
+  body.appendChild(titleEl);
+  body.appendChild(meta);
+
+  // Right
+  const right = document.createElement('div');
+  right.className = 'card-right';
+
+  if (total > 0) {
+    const pw = document.createElement('div');
+    pw.className = 'progress-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill';
+    fill.style.width = pct + '%';
+    bar.appendChild(fill);
+    const txt = document.createElement('span');
+    txt.className = 'progress-text';
+    txt.textContent = `${done}/${total} 완료`;
+    pw.appendChild(bar);
+    pw.appendChild(txt);
+    right.appendChild(pw);
+  }
+
+  const dotClass = {planned:'dot-planned',inprogress:'dot-inprogress',done:'dot-done',hold:'dot-hold'}[evtData.status] || 'dot-planned';
+  const dot = document.createElement('div');
+  dot.className = 'status-dot ' + dotClass;
+  right.appendChild(dot);
+
+  // Action buttons (edit / delete)
+  const actions = document.createElement('div');
+  actions.className = 'card-actions';
+
+  const editBtn = document.createElement('button');
+  editBtn.className = 'card-action-btn edit';
+  editBtn.textContent = '수정';
+  editBtn.onclick = (e) => { e.stopPropagation(); openEditModal(evt.id); };
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'card-action-btn del';
+  delBtn.textContent = '삭제';
+  delBtn.onclick = (e) => { e.stopPropagation(); deleteEvent(evt.id); };
+
+  actions.appendChild(editBtn);
+  actions.appendChild(delBtn);
+
+  card.appendChild(dateChip);
+  card.appendChild(body);
+  card.appendChild(right);
+  card.appendChild(actions);
+  card.onclick = () => openDrawer(evt.id);
+  return card;
+}
+
+// ── Drawer ──
+function openDrawer(eventId) {
+  drawerEventId = eventId;
+  const evt = getEffectiveEvents().find(e => e.id === eventId);
+  if (!evt) return;
+  const evtData = getEventData(eventId);
+
+  document.getElementById('drawerTitle').textContent = evt.title;
+  document.getElementById('drawerDate').textContent = evt.dateStr;
+
+  const teamsEl = document.getElementById('drawerTeams');
+  teamsEl.innerHTML = '';
+  evt.teams.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'team-chip';
+    chip.textContent = t;
+    chip.style.background = TEAM_COLORS[t] || '#888';
+    teamsEl.appendChild(chip);
+  });
+
+  renderStatusChips(evtData.status || 'planned');
+  switchTab('todo');
+  renderTodos();
+  document.getElementById('progressArea').value = evtData.progress || '';
+  document.getElementById('notesArea').value = evtData.notes || '';
+
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  drawerEventId = null;
+}
+
+function renderStatusChips(currentStatus) {
+  document.querySelectorAll('.status-chip').forEach(c => {
+    c.className = 'status-chip';
+    if (c.getAttribute('data-status') === currentStatus) {
+      c.classList.add('active-' + currentStatus);
+    }
+  });
+}
+
+function setStatus(status) {
+  if (!drawerEventId) return;
+  updateEventData(drawerEventId, d => { d.status = status; });
+  renderStatusChips(status);
+  refreshCard(drawerEventId);
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + tab));
+  if (tab === 'weekly') renderWeeklyTodos();
+}
+
+// ── Weekly Todos tab ──
+function renderWeeklyTodos() {
+  const container = document.getElementById('weeklyTodoContainer');
+  if (!container) return;
+  if (!drawerEventId) {
+    container.innerHTML = '<div class="weekly-empty">사역을 선택한 후 다시 열어주세요.</div>';
+    return;
+  }
+
+  // localStorage에서 동기적으로 읽기
+  let ministryData = null;
+  try {
+    const raw = localStorage.getItem('gmc_ministry_v2');
+    if (raw) ministryData = JSON.parse(raw);
+  } catch(e) {}
+
+  if (!ministryData) {
+    container.innerHTML = '<div class="weekly-empty">주간 대시보드 데이터가 없습니다.<br>주간 대시보드를 먼저 열어주세요.</div>';
+    return;
+  }
+
+  // 이 연간 사역에 연결된 주간 todo 수집
+  const weekGroups = {};
+  Object.entries(ministryData).forEach(([weekKey, wk]) => {
+    if (!wk || !wk.ministries) return;
+    wk.ministries.forEach(m => {
+      if (!m.todos) return;
+      m.todos.forEach(t => {
+        if (t.annualEventId === drawerEventId) {
+          if (!weekGroups[weekKey]) weekGroups[weekKey] = [];
+          weekGroups[weekKey].push({ ministryName: m.name, todo: t });
+        }
+      });
+    });
+  });
+
+  const keys = Object.keys(weekGroups).sort();
+
+  if (!keys.length) {
+    container.innerHTML = '<div class="weekly-empty">연결된 주간 사역이 없습니다.<br><br>주간 대시보드에서 할 일을 클릭한 후<br>"연결하기" 버튼으로 연결하세요.</div>';
+    return;
+  }
+
+  let html = '';
+  keys.forEach(wk => {
+    const items = weekGroups[wk];
+    const [y, mo, d] = wk.split('-').map(Number);
+    const s = new Date(y, mo - 1, d);
+    const e = new Date(y, mo - 1, d + 6);
+    const fmt = dt => `${dt.getMonth()+1}/${dt.getDate()}`;
+    html += `<div class="weekly-week-group">`;
+    html += `<div class="weekly-week-header">${fmt(s)} ~ ${fmt(e)} 주간 (${items.length}건)</div>`;
+    items.forEach(({ ministryName, todo }) => {
+      const doneClass = todo.done ? ' done' : '';
+      const badgeClass = todo.done ? 'done' : 'pending';
+      const badgeText = todo.done ? '완료' : '진행중';
+      const dateStr = todo.date ? todo.date.slice(5).replace('-', '/') : '';
+      const text = escHtml(todo.text || '');
+      const mname = escHtml(ministryName || '');
+      html += `<div class="weekly-todo-item">
+        <input type="checkbox" ${todo.done ? 'checked' : ''} disabled style="width:14px;height:14px;flex-shrink:0;accent-color:#2f855a;" />
+        <span class="weekly-todo-text${doneClass}">${text}</span>
+        <span class="weekly-ministry-label">${mname}</span>
+        ${dateStr ? `<span class="weekly-todo-date">${dateStr}</span>` : ''}
+        <span class="weekly-done-badge ${badgeClass}">${badgeText}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function escHtmlAnnual(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Use a simple escHtml for the annual dashboard
+function escHtml(str) { return escHtmlAnnual(str); }
+
+// ── Todos ──
+function renderTodos() {
+  if (!drawerEventId) return;
+  const evtData = getEventData(drawerEventId);
+  const todos = evtData.todos || [];
+  const list = document.getElementById('todoList');
+  list.innerHTML = '';
+  if (!todos.length) {
+    list.innerHTML = '<div class="todo-empty">할 일이 없습니다. 위에서 추가하세요.</div>';
+    return;
+  }
+  todos.forEach(todo => {
+    const item = document.createElement('div');
+    item.className = 'todo-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'todo-cb';
+    cb.checked = todo.done;
+    cb.onchange = () => toggleTodo(todo.id, cb.checked);
+
+    const txt = document.createElement('span');
+    txt.className = 'todo-text' + (todo.done ? ' done' : '');
+    txt.textContent = todo.text;
+
+    const del = document.createElement('button');
+    del.className = 'todo-del';
+    del.textContent = '삭제';
+    del.onclick = () => deleteTodo(todo.id);
+
+    item.appendChild(cb);
+    item.appendChild(txt);
+    item.appendChild(del);
+    list.appendChild(item);
+  });
+}
+
+function getTuesdayKey(date) {
+  const day = date.getDay(); // 0=일,1=월,2=화...
+  const diff = day === 0 ? -5 : day === 1 ? -6 : -(day - 2);
+  const tue = new Date(date);
+  tue.setDate(date.getDate() + diff);
+  const y = tue.getFullYear();
+  const m = String(tue.getMonth()+1).padStart(2,'0');
+  const d = String(tue.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function getEventWeekKey(evt) {
+  // dateSort: "MM-DD" 형식 → 해당 연도의 날짜로 변환
+  if (evt && evt.dateSort) {
+    const [mo, d] = evt.dateSort.split('-').map(Number);
+    const year = evt.month <= 2 && mo >= 11 ? 2025 : 2026; // 연말 처리
+    const evtDate = new Date(year, mo - 1, d);
+    return getTuesdayKey(evtDate);
+  }
+  return getTuesdayKey(new Date()); // fallback: 이번 주
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+
+function syncTodoToWeekly(eventId, eventTitle, todoId, todoText) {
+  let weekData = {};
+  try { weekData = JSON.parse(localStorage.getItem('gmc_ministry_v2') || '{}'); } catch(e) {}
+  const evt = ANNUAL_EVENTS.find(e => e.id === eventId);
+  const wk = getEventWeekKey(evt);
+  if (!weekData[wk]) weekData[wk] = { ministries: [] };
+  if (!weekData[wk].ministries) weekData[wk].ministries = [];
+  // 이미 이 연간 사역과 연결된 ministry 찾기
+  let m = weekData[wk].ministries.find(x => x.annualEventId === eventId);
+  if (!m) {
+    m = { id: uid(), name: eventTitle, todos: [], status: 'planned',
+          annualEventId: eventId, color: '#c8973e', category: 'other', pinned: false };
+    weekData[wk].ministries.push(m);
+  }
+  if (!m.todos) m.todos = [];
+  m.todos.push({ id: todoId, text: todoText, done: false,
+                 annualEventId: eventId, annualEventTitle: eventTitle });
+  localStorage.setItem('gmc_ministry_v2', JSON.stringify(weekData));
+}
+
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text || !drawerEventId) return;
+  const todoId = uid();
+  updateEventData(drawerEventId, d => {
+    d.todos.push({ id: todoId, text, done: false });
+  });
+  // 주간 대시보드에도 동기화
+  const evt = ANNUAL_EVENTS.find(e => e.id === drawerEventId);
+  if (evt) syncTodoToWeekly(drawerEventId, evt.title, todoId, text);
+  input.value = '';
+  renderTodos();
+  refreshCard(drawerEventId);
+}
+
+function toggleTodo(todoId, done) {
+  if (!drawerEventId) return;
+  updateEventData(drawerEventId, d => {
+    const t = d.todos.find(x => x.id === todoId);
+    if (t) t.done = done;
+  });
+  renderTodos();
+  refreshCard(drawerEventId);
+}
+
+function deleteTodo(todoId) {
+  if (!drawerEventId) return;
+  updateEventData(drawerEventId, d => {
+    d.todos = d.todos.filter(x => x.id !== todoId);
+  });
+  renderTodos();
+  refreshCard(drawerEventId);
+}
+
+// ── Auto-save notes ──
+let saveTimer = null;
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (!drawerEventId) return;
+    const prog = document.getElementById('progressArea').value;
+    const notes = document.getElementById('notesArea').value;
+    updateEventData(drawerEventId, d => { d.progress = prog; d.notes = notes; });
+  }, 600);
+}
+
+// ── Refresh single card ──
+function refreshCard(eventId) {
+  const existing = document.querySelector(`.event-card[data-id="${eventId}"]`);
+  if (!existing) return;
+  const evt = ANNUAL_EVENTS.find(e => e.id === eventId);
+  if (!evt) return;
+  const newCard = buildCard(evt);
+  existing.replaceWith(newCard);
+}
+
+// ── Render all ──
+function renderAll() {
+  renderSidebar();
+  renderTeamTabs();
+  renderEventList();
+}
+
+// ── Delete event ──
+function deleteEvent(id) {
+  const evt = getEffectiveEvents().find(e => e.id === id);
+  if (!evt) return;
+  if (!confirm(`"${evt.title}" 사역을 삭제하시겠습니까?`)) return;
+  const custom = getCustomEvents();
+  if (custom.find(e => e.id === id)) {
+    deleteCustomEvent(id);
+  } else {
+    markDeleted(id);
+  }
+  if (drawerEventId === id) closeDrawer();
+  renderAll();
+}
+
+// ── Edit / Add modal ──
+let _editTargetId = null;
+let _editSelectedTeams = [];
+
+const ALL_TEAMS = [
+  '예배드림팀','제자섬김팀','목장만남팀','선교사역팀','교육세움팀',
+  '영어회중팀','이웃사랑팀','목회지원팀','시설관리팀','행정운영팀'
+];
+
+function openEditModal(id) {
+  _editTargetId = id;
+  const isNew = !id;
+  document.getElementById('editModalTitle').textContent = isNew ? '사역 추가' : '사역 수정';
+
+  let title = '', dateStr = '', dateSort = '';
+  _editSelectedTeams = [];
+
+  if (!isNew) {
+    const evt = getEffectiveEvents().find(e => e.id === id);
+    if (!evt) return;
+    title   = evt.title;
+    dateStr = evt.dateStr;
+    dateSort = evt.dateSort;
+    _editSelectedTeams = [...(evt.teams || [])];
+  } else {
+    // Default dateSort to first day of current month
+    const mm = String(activeMonth).padStart(2, '0');
+    dateSort = `${mm}-01`;
+    dateStr  = `${activeMonth}/1`;
+  }
+
+  document.getElementById('editTitle').value    = title;
+  document.getElementById('editDateStr').value  = dateStr;
+  document.getElementById('editDateSort').value = dateSort;
+
+  renderTeamsGrid();
+  document.getElementById('editModalBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('editTitle').focus(), 50);
+}
+
+function renderTeamsGrid() {
+  const grid = document.getElementById('editTeamsGrid');
+  grid.innerHTML = '';
+  ALL_TEAMS.forEach(t => {
+    const chip = document.createElement('div');
+    chip.className = 'edit-team-chip' + (_editSelectedTeams.includes(t) ? ' selected' : '');
+    chip.textContent = t;
+    chip.style.background = (TEAM_COLORS[t] || '#888') + '33';
+    chip.style.color = TEAM_COLORS[t] || '#555';
+    if (_editSelectedTeams.includes(t)) chip.style.borderColor = TEAM_COLORS[t] || '#888';
+    chip.onclick = () => {
+      if (_editSelectedTeams.includes(t)) {
+        _editSelectedTeams = _editSelectedTeams.filter(x => x !== t);
+      } else {
+        _editSelectedTeams.push(t);
+      }
+      renderTeamsGrid();
+    };
+    grid.appendChild(chip);
+  });
+}
+
+function onDateSortInput(val) {
+  // Auto-fill dateStr from MM-DD
+  const m = val.match(/^(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    const mo = parseInt(m[1]), d = parseInt(m[2]);
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+      document.getElementById('editDateStr').value = `${mo}/${d}`;
+    }
+  }
+}
+
+function closeEditModal() {
+  document.getElementById('editModalBackdrop').classList.remove('open');
+  _editTargetId = null;
+}
+
+function saveEditModal() {
+  const title    = document.getElementById('editTitle').value.trim();
+  const dateStr  = document.getElementById('editDateStr').value.trim();
+  const dateSort = document.getElementById('editDateSort').value.trim();
+
+  if (!title)    { alert('제목을 입력하세요.'); return; }
+  if (!dateSort.match(/^\d{2}-\d{2}$/)) { alert('날짜 정렬은 MM-DD 형식으로 입력하세요. 예) 05-16'); return; }
+
+  const month = parseInt(dateSort.split('-')[0]);
+  if (month < 1 || month > 12) { alert('월이 올바르지 않습니다.'); return; }
+
+  const teams = _editSelectedTeams.length ? _editSelectedTeams : ['목회지원팀'];
+
+  if (!_editTargetId) {
+    // New custom event
+    const newEvt = {
+      id: 'custom_' + Date.now(),
+      month, dateStr: dateStr || `${month}/${parseInt(dateSort.split('-')[1])}`,
+      dateSort, title, teams
+    };
+    saveCustomEvent(newEvt);
+    activeMonth = month;
+  } else {
+    // Edit existing
+    const isCustom = getCustomEvents().find(e => e.id === _editTargetId);
+    if (isCustom) {
+      saveCustomEvent({ ...isCustom, title, dateStr, dateSort, month, teams });
+    } else {
+      saveEdit(_editTargetId, { title, dateStr, dateSort, month, teams });
+    }
+  }
+
+  closeEditModal();
+  renderAll();
+}
+
+// ── Init ──
+document.getElementById('drawerClose').onclick = closeDrawer;
+document.getElementById('overlay').onclick = closeDrawer;
+document.getElementById('editModalBackdrop').onclick = function(e) {
+  if (e.target === this) closeEditModal();
+};
+document.getElementById('sortSelect').onchange = function() {
+  activeSort = this.value;
+  renderEventList();
+};
+let _todoImeOn = false;
+const _todoInp = document.getElementById('todoInput');
+_todoInp.addEventListener('compositionstart', () => { _todoImeOn = true; });
+_todoInp.addEventListener('compositionend',   () => { _todoImeOn = false; });
+_todoInp.addEventListener('keyup', e => { if (e.key === 'Enter' && !_todoImeOn) addTodo(); });
+document.getElementById('progressArea').addEventListener('input', autoSave);
+document.getElementById('notesArea').addEventListener('input', autoSave);
+
+renderAll();
+
+// Scroll to active month section on load
+window.addEventListener('load', () => {
+  const activeItem = document.querySelector('.month-item.active');
+  if (activeItem) activeItem.scrollIntoView({ block: 'center' });
+});
+</script>
+</body>
+</html>

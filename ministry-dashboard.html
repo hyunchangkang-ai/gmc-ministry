@@ -10678,9 +10678,24 @@
     /* To-do list */
     .todo-add {
       display: flex;
-      gap: 6px;
+      flex-direction: column;
+      gap: 5px;
       margin-bottom: 10px;
     }
+    .todo-add-row1 { display: flex; gap: 6px; }
+    .todo-add-row2 { display: flex; gap: 6px; }
+    .todo-add-date, .todo-add-time {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.78rem;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+    .todo-add-date { flex: 1; }
+    .todo-add-time { width: 100px; flex-shrink: 0; }
+    .todo-add-date:focus, .todo-add-time:focus { border-color: var(--primary-light); }
     .todo-input {
       flex: 1;
       border: 1px solid var(--border);
@@ -11298,8 +11313,14 @@
   <div class="drawer-body">
     <div class="drawer-pane active" data-dpane="todos">
       <div class="todo-add">
-        <input class="todo-input" id="drawerTodoInput" placeholder="할 일 입력 후 Enter" />
-        <button class="todo-add-btn" id="drawerTodoAdd">추가</button>
+        <div class="todo-add-row1">
+          <input class="todo-input" id="drawerTodoInput" placeholder="할 일 입력 후 Enter" />
+          <button class="todo-add-btn" id="drawerTodoAdd">추가</button>
+        </div>
+        <div class="todo-add-row2">
+          <input type="date" class="todo-add-date" id="drawerTodoDate" title="날짜" />
+          <input type="time" class="todo-add-time" id="drawerTodoTime" title="시간" />
+        </div>
       </div>
       <ul class="todo-list" id="drawerTodoList"></ul>
     </div>
@@ -12543,8 +12564,18 @@ function openDrawer(m) {
   const addTodo = () => {
     const text = inp.value.trim();
     if (!text) return;
-    getDrawerM().todos.push({ id: uid(), text, done: false, progress: '', needs: '' });
+    const dateVal = document.getElementById('drawerTodoDate').value;
+    const timeVal = document.getElementById('drawerTodoTime').value;
+    const timeLabel = timeVal ? `[${timeVal}] ` : '';
+    getDrawerM().todos.push({
+      id: uid(),
+      text: timeLabel + text,
+      date: dateVal || '',
+      time: timeVal || '',
+      done: false, progress: '', needs: ''
+    });
     inp.value = '';
+    document.getElementById('drawerTodoTime').value = '';
     saveData(); renderDrawerTodos(); renderCards();
   };
   document.getElementById('drawerTodoAdd').onclick = addTodo;

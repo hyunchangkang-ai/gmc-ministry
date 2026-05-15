@@ -12561,19 +12561,32 @@ function openDrawer(m) {
   // Add todo
   const inp = document.getElementById('drawerTodoInput');
   inp.value = '';
+  const sortTodos = (todos) => {
+    todos.sort((a, b) => {
+      const da = a.date || '9999-99-99';
+      const db = b.date || '9999-99-99';
+      if (da !== db) return da < db ? -1 : 1;
+      const ta = a.time || '99:99';
+      const tb = b.time || '99:99';
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
+  };
+
   const addTodo = () => {
     const text = inp.value.trim();
     if (!text) return;
     const dateVal = document.getElementById('drawerTodoDate').value;
     const timeVal = document.getElementById('drawerTodoTime').value;
     const timeLabel = timeVal ? `[${timeVal}] ` : '';
-    getDrawerM().todos.push({
+    const m = getDrawerM();
+    m.todos.push({
       id: uid(),
       text: timeLabel + text,
       date: dateVal || '',
       time: timeVal || '',
       done: false, progress: '', needs: ''
     });
+    sortTodos(m.todos);
     inp.value = '';
     document.getElementById('drawerTodoTime').value = '';
     saveData(); renderDrawerTodos(); renderCards();

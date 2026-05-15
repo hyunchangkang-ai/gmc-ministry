@@ -1,0 +1,11 @@
+gcal_credentials.json
+gcal_token.json
+ministry_data.json
+*.py
+*.gs
+*.db
+*.log
+*.txt
+*.docx
+*.json
+!manifest.json

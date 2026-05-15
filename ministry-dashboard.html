@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GMC 주간 사역 관리</title>
+  <link rel="manifest" href="/gmc-ministry/manifest.json" />
+  <link rel="apple-touch-icon" href="/gmc-ministry/icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GMC 사역" />
+  <meta name="theme-color" content="#1a3a5c" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/gmc-ministry/sw.js');
+    }
+  </script>
   <!-- GCAL_DATA_START -->
   <script>window.GCAL_EVENTS = [
   {"id":"gcal_1djt6tuob6t8edtkkj1hk9uo","calendarId":"office@gmcusa.org","calendarName":"GMC OFFICE","date":"2026-01-02","time":"","title":"시무식"},

@@ -1,0 +1,15 @@
+{
+  "name": "GMC 사역 관리",
+  "short_name": "GMC 사역",
+  "description": "Global Mission Church 주간/연간 사역 관리",
+  "start_url": "/gmc-ministry/ministry-dashboard.html",
+  "scope": "/gmc-ministry/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1a3a5c",
+  "background_color": "#1a3a5c",
+  "icons": [
+    { "src": "/gmc-ministry/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/gmc-ministry/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

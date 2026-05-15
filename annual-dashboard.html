@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GMC 2026 연간 사역</title>
+  <link rel="manifest" href="/gmc-ministry/manifest.json" />
+  <link rel="apple-touch-icon" href="/gmc-ministry/icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GMC 사역" />
+  <meta name="theme-color" content="#1a3a5c" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/gmc-ministry/sw.js');
+    }
+  </script>
   <style>
     :root {
       --primary: #1a3a5c;

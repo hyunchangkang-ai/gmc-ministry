@@ -12844,6 +12844,7 @@ function renderDrawerTodos() {
 
   // ── Drag-and-drop reordering ──────────────────────────────────────────────
   let dragId = null;
+  let _fromHandle = false;
 
   const clearDragStyles = () => list.querySelectorAll('.todo-item').forEach(el =>
     el.classList.remove('dragging', 'drag-over-top', 'drag-over-bottom')
@@ -12860,11 +12861,29 @@ function renderDrawerTodos() {
     saveData(); renderDrawerTodos(); renderCards();
   };
 
+  // 핸들 mousedown → li에 draggable 부여
+  list.addEventListener('mousedown', e => {
+    const handle = e.target.closest('[data-drag-handle]');
+    if (handle) {
+      _fromHandle = true;
+      const li = handle.closest('[data-todo-id]');
+      if (li) li.setAttribute('draggable', 'true');
+    } else {
+      _fromHandle = false;
+    }
+  }, sig);
+
+  document.addEventListener('mouseup', () => {
+    if (_fromHandle) {
+      list.querySelectorAll('[data-todo-id]').forEach(el => el.removeAttribute('draggable'));
+      _fromHandle = false;
+    }
+  }, sig);
+
   // 데스크탑 드래그
   list.addEventListener('dragstart', e => {
-    if (!e.target.closest('[data-drag-handle]')) { e.preventDefault(); return; }
     const li = e.target.closest('[data-todo-id]');
-    if (!li) return;
+    if (!li || !_fromHandle) { e.preventDefault(); return; }
     dragId = li.dataset.todoId;
     setTimeout(() => li.classList.add('dragging'), 0);
     e.dataTransfer.effectAllowed = 'move';

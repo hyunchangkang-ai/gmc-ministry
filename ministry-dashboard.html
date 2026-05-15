@@ -10760,6 +10760,21 @@
       flex-shrink: 0;
     }
     .todo-del:hover { color: #e53e3e; }
+    .drag-handle {
+      cursor: grab;
+      color: #cbd5e0;
+      font-size: 1.1rem;
+      padding: 0 3px;
+      flex-shrink: 0;
+      user-select: none;
+      touch-action: none;
+      line-height: 1;
+    }
+    .drag-handle:hover { color: #718096; }
+    .drag-handle:active { cursor: grabbing; }
+    .todo-item.dragging { opacity: 0.35; background: #f7fafc; }
+    .todo-item.drag-over-top { border-top: 2px solid var(--primary) !important; }
+    .todo-item.drag-over-bottom { border-bottom: 2px solid var(--primary) !important; }
 
     .todo-due {
       font-size: 0.72rem;
@@ -12708,6 +12723,7 @@ function renderDrawerTodos() {
   const list = document.getElementById('drawerTodoList');
   list.innerHTML = m.todos.map(t => `
     <li class="todo-item${getDueStatus(t) ? ' is-'+getDueStatus(t) : ''}" data-todo-id="${t.id}">
+      <span class="drag-handle" data-drag-handle title="드래그하여 순서 변경">⠿</span>
       <input type="checkbox" ${t.done?'checked':''} data-todo-check />
       <textarea class="todo-text${t.done?' done':''}" data-todo-text rows="1">${escHtml(t.text)}</textarea>
       ${getDueStatus(t) ? `<span class="due-badge ${getDueStatus(t)}">${DUE_LABEL[getDueStatus(t)]}</span>` : ''}
@@ -12746,6 +12762,112 @@ function renderDrawerTodos() {
       const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
       if (todo) { todo.text = e.target.value; saveData(); autoResize.call(e.target); }
     }
+  });
+
+  // ── Drag-and-drop reordering ──────────────────────────────────────────────
+  let dragId = null;
+
+  function clearDragStyles() {
+    list.querySelectorAll('.todo-item').forEach(el =>
+      el.classList.remove('dragging', 'drag-over-top', 'drag-over-bottom')
+    );
+  }
+
+  function reorderTodos(fromId, toId, position) {
+    const cur = getDrawerM();
+    const fromIdx = cur.todos.findIndex(t => t.id === fromId);
+    const toIdx   = cur.todos.findIndex(t => t.id === toId);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+    const [moved] = cur.todos.splice(fromIdx, 1);
+    const insertIdx = cur.todos.findIndex(t => t.id === toId);
+    cur.todos.splice(position === 'top' ? insertIdx : insertIdx + 1, 0, moved);
+    saveData(); renderDrawerTodos(); renderCards();
+  }
+
+  // Mouse drag (desktop)
+  list.querySelectorAll('[data-drag-handle]').forEach(handle => {
+    handle.addEventListener('mousedown', () => {
+      handle.closest('[data-todo-id]').setAttribute('draggable', 'true');
+    });
+  });
+
+  list.addEventListener('dragstart', e => {
+    const li = e.target.closest('[data-todo-id]');
+    if (!li) return;
+    dragId = li.dataset.todoId;
+    setTimeout(() => li.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  list.addEventListener('dragend', () => {
+    clearDragStyles();
+    list.querySelectorAll('[data-todo-id]').forEach(el => el.removeAttribute('draggable'));
+    dragId = null;
+  });
+
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const li = e.target.closest('[data-todo-id]');
+    if (!li || li.dataset.todoId === dragId) return;
+    clearDragStyles();
+    list.querySelector(`[data-todo-id="${dragId}"]`)?.classList.add('dragging');
+    const rect = li.getBoundingClientRect();
+    const position = e.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom';
+    li.classList.add(position === 'top' ? 'drag-over-top' : 'drag-over-bottom');
+    li.dataset.dropPosition = position;
+  });
+
+  list.addEventListener('drop', e => {
+    e.preventDefault();
+    const li = e.target.closest('[data-todo-id]');
+    if (!li || !dragId) return;
+    reorderTodos(dragId, li.dataset.todoId, li.dataset.dropPosition || 'top');
+  });
+
+  // Touch drag (mobile)
+  let touchDragId = null, touchClone = null, touchOffsetY = 0;
+
+  list.querySelectorAll('[data-drag-handle]').forEach(handle => {
+    handle.addEventListener('touchstart', e => {
+      const li = handle.closest('[data-todo-id]');
+      touchDragId = li.dataset.todoId;
+      const rect = li.getBoundingClientRect();
+      touchOffsetY = e.touches[0].clientY - rect.top;
+      touchClone = li.cloneNode(true);
+      touchClone.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;opacity:0.8;pointer-events:none;z-index:9999;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.15);border-radius:6px;`;
+      touchClone.style.top = (e.touches[0].clientY - touchOffsetY) + 'px';
+      document.body.appendChild(touchClone);
+      li.classList.add('dragging');
+      e.preventDefault();
+    }, { passive: false });
+  });
+
+  list.addEventListener('touchmove', e => {
+    if (!touchDragId || !touchClone) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    touchClone.style.top = (y - touchOffsetY) + 'px';
+    clearDragStyles();
+    list.querySelector(`[data-todo-id="${touchDragId}"]`)?.classList.add('dragging');
+    const els = [...list.querySelectorAll('[data-todo-id]')].filter(el => el.dataset.todoId !== touchDragId);
+    for (const el of els) {
+      const rect = el.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) {
+        const position = y < rect.top + rect.height / 2 ? 'top' : 'bottom';
+        el.classList.add(position === 'top' ? 'drag-over-top' : 'drag-over-bottom');
+        el.dataset.dropPosition = position;
+        break;
+      }
+    }
+  }, { passive: false });
+
+  list.addEventListener('touchend', () => {
+    if (!touchDragId) return;
+    if (touchClone) { touchClone.remove(); touchClone = null; }
+    const target = list.querySelector('.drag-over-top, .drag-over-bottom');
+    if (target) reorderTodos(touchDragId, target.dataset.todoId, target.dataset.dropPosition || 'top');
+    else { clearDragStyles(); }
+    touchDragId = null;
   });
 }
 

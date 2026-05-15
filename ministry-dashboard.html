@@ -11353,6 +11353,7 @@
         </div>
       </div>
       <ul class="todo-list" id="drawerTodoList"></ul>
+      <div id="todoDetailExtra"></div>
     </div>
     <div class="drawer-pane" data-dpane="progress">
       <div class="section-label">사역 내용 · 업데이트</div>
@@ -12573,6 +12574,11 @@ function openDrawer(m) {
   document.getElementById('drawerProgress').oninput = e => { getDrawerM().progress = e.target.value; saveData(); };
   document.getElementById('drawerNeeds').oninput = e => { getDrawerM().needs = e.target.value; saveData(); };
 
+  // 사역 모드: 탭 모두 복원 + 인라인 영역 초기화
+  drawer.querySelectorAll('.drawer-tab').forEach(t => { t.style.display = ''; });
+  const extra = document.getElementById('todoDetailExtra');
+  if (extra) extra.innerHTML = '';
+
   // Tabs
   drawer.querySelectorAll('.drawer-tab').forEach(tab => {
     tab.onclick = () => {
@@ -12716,14 +12722,18 @@ function openTodoDrawer(ministryId, todoId) {
       drawer.querySelector(`[data-dpane="${tab.dataset.dtab}"]`).classList.add('active');
     };
   });
-  // Switch to first tab
-  drawer.querySelectorAll('.drawer-tab').forEach((t,i) => t.classList.toggle('active', i===0));
-  drawer.querySelectorAll('.drawer-pane').forEach((p,i) => p.classList.toggle('active', i===0));
+  // 할 일 탭만 표시 (사역내용·참고사항은 인라인으로 표시되므로 탭 숨김)
+  drawer.querySelectorAll('.drawer-tab').forEach(t => {
+    const hide = (t.dataset.dtab === 'progress' || t.dataset.dtab === 'needs');
+    t.style.display = hide ? 'none' : '';
+    t.classList.toggle('active', t.dataset.dtab === 'todos');
+  });
+  drawer.querySelectorAll('.drawer-pane').forEach(p => p.classList.toggle('active', p.dataset.dpane === 'todos'));
 
   // Hide add-todo row (single item mode)
   document.querySelector('.todo-add').style.display = 'none';
 
-  // Render this single item in the "할 일" pane
+  // Render this single item in the "할 일" pane (includes inline progress/needs)
   renderDrawerTodosSingle();
 
   // Progress / Needs bound to the todo item
@@ -12776,6 +12786,25 @@ function renderDrawerTodosSingle() {
     if (e.target.id === 'singleTodoDue') {
       t.dueDate = e.target.value || null; saveData(); renderCards(); renderDrawerTodosSingle();
     }
+  };
+
+  // 사역내용 · 참고사항 인라인 표시
+  const extra = document.getElementById('todoDetailExtra');
+  extra.innerHTML = `
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+      <div class="section-label" style="margin-bottom:6px;">📝 사역 내용</div>
+      <textarea id="inlineProgress" class="ministry-textarea" placeholder="사역 내용 및 진행 상황을 기록하세요..." style="min-height:80px;">${escHtml(todo.progress||'')}</textarea>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="section-label" style="margin-bottom:6px;">📌 참고 사항</div>
+      <textarea id="inlineNeeds" class="ministry-textarea" placeholder="참고할 사항, 메모, 기도 제목 등을 적어두세요..." style="min-height:80px;">${escHtml(todo.needs||'')}</textarea>
+    </div>
+  `;
+  extra.querySelector('#inlineProgress').oninput = e => {
+    const t = getDrawerTodo(); if (t) { t.progress = e.target.value; saveData(); }
+  };
+  extra.querySelector('#inlineNeeds').oninput = e => {
+    const t = getDrawerTodo(); if (t) { t.needs = e.target.value; saveData(); }
   };
 
   // Annual link / unlink buttons

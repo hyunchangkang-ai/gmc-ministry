@@ -12778,7 +12778,7 @@ function renderDrawerTodos() {
   const useGroups = dateKeys.length > 1 || (dateKeys.length === 1 && noDate.length > 0);
 
   function todoItemHtml(t) {
-    return `<li class="todo-item${getDueStatus(t) ? ' is-'+getDueStatus(t) : ''}" data-todo-id="${t.id}">
+    return `<li class="todo-item${getDueStatus(t) ? ' is-'+getDueStatus(t) : ''}" data-todo-id="${t.id}" draggable="true">
       <span class="drag-handle" data-drag-handle title="드래그하여 순서 변경">⠿</span>
       <input type="checkbox" ${t.done?'checked':''} data-todo-check />
       <textarea class="todo-text${t.done?' done':''}" data-todo-text rows="1">${escHtml(t.text)}</textarea>
@@ -12807,6 +12807,11 @@ function renderDrawerTodos() {
 
   list.querySelectorAll('[data-todo-text]').forEach(ta => setTimeout(() => autoResize.call(ta), 0));
 
+  // 이전 리스너 제거 후 재등록
+  if (list._abortCtrl) list._abortCtrl.abort();
+  list._abortCtrl = new AbortController();
+  const sig = { signal: list._abortCtrl.signal };
+
   list.addEventListener('change', e => {
     if (e.target.matches('[data-todo-check]')) {
       const li = e.target.closest('[data-todo-id]');
@@ -12818,7 +12823,7 @@ function renderDrawerTodos() {
       const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
       if (todo) { todo.dueDate = e.target.value || null; saveData(); renderDrawerTodos(); renderCards(); }
     }
-  });
+  }, sig);
 
   list.addEventListener('click', e => {
     if (e.target.matches('[data-todo-del]')) {
@@ -12827,7 +12832,7 @@ function renderDrawerTodos() {
       cur.todos = cur.todos.filter(t => t.id !== li.dataset.todoId);
       saveData(); renderDrawerTodos(); renderCards();
     }
-  });
+  }, sig);
 
   list.addEventListener('input', e => {
     if (e.target.matches('[data-todo-text]')) {
@@ -12835,18 +12840,16 @@ function renderDrawerTodos() {
       const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
       if (todo) { todo.text = e.target.value; saveData(); autoResize.call(e.target); }
     }
-  });
+  }, sig);
 
   // ── Drag-and-drop reordering ──────────────────────────────────────────────
   let dragId = null;
 
-  function clearDragStyles() {
-    list.querySelectorAll('.todo-item').forEach(el =>
-      el.classList.remove('dragging', 'drag-over-top', 'drag-over-bottom')
-    );
-  }
+  const clearDragStyles = () => list.querySelectorAll('.todo-item').forEach(el =>
+    el.classList.remove('dragging', 'drag-over-top', 'drag-over-bottom')
+  );
 
-  function reorderTodos(fromId, toId, position) {
+  const reorderTodos = (fromId, toId, position) => {
     const cur = getDrawerM();
     const fromIdx = cur.todos.findIndex(t => t.id === fromId);
     const toIdx   = cur.todos.findIndex(t => t.id === toId);
@@ -12855,28 +12858,22 @@ function renderDrawerTodos() {
     const insertIdx = cur.todos.findIndex(t => t.id === toId);
     cur.todos.splice(position === 'top' ? insertIdx : insertIdx + 1, 0, moved);
     saveData(); renderDrawerTodos(); renderCards();
-  }
+  };
 
-  // Mouse drag (desktop)
-  list.querySelectorAll('[data-drag-handle]').forEach(handle => {
-    handle.addEventListener('mousedown', () => {
-      handle.closest('[data-todo-id]').setAttribute('draggable', 'true');
-    });
-  });
-
+  // 데스크탑 드래그
   list.addEventListener('dragstart', e => {
+    if (!e.target.closest('[data-drag-handle]')) { e.preventDefault(); return; }
     const li = e.target.closest('[data-todo-id]');
     if (!li) return;
     dragId = li.dataset.todoId;
     setTimeout(() => li.classList.add('dragging'), 0);
     e.dataTransfer.effectAllowed = 'move';
-  });
+  }, sig);
 
   list.addEventListener('dragend', () => {
     clearDragStyles();
-    list.querySelectorAll('[data-todo-id]').forEach(el => el.removeAttribute('draggable'));
     dragId = null;
-  });
+  }, sig);
 
   list.addEventListener('dragover', e => {
     e.preventDefault();
@@ -12885,35 +12882,35 @@ function renderDrawerTodos() {
     clearDragStyles();
     list.querySelector(`[data-todo-id="${dragId}"]`)?.classList.add('dragging');
     const rect = li.getBoundingClientRect();
-    const position = e.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom';
-    li.classList.add(position === 'top' ? 'drag-over-top' : 'drag-over-bottom');
-    li.dataset.dropPosition = position;
-  });
+    const pos = e.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom';
+    li.classList.add(pos === 'top' ? 'drag-over-top' : 'drag-over-bottom');
+    li.dataset.dropPosition = pos;
+  }, sig);
 
   list.addEventListener('drop', e => {
     e.preventDefault();
     const li = e.target.closest('[data-todo-id]');
     if (!li || !dragId) return;
     reorderTodos(dragId, li.dataset.todoId, li.dataset.dropPosition || 'top');
-  });
+  }, sig);
 
-  // Touch drag (mobile)
+  // 모바일 터치 드래그
   let touchDragId = null, touchClone = null, touchOffsetY = 0;
 
-  list.querySelectorAll('[data-drag-handle]').forEach(handle => {
-    handle.addEventListener('touchstart', e => {
-      const li = handle.closest('[data-todo-id]');
-      touchDragId = li.dataset.todoId;
-      const rect = li.getBoundingClientRect();
-      touchOffsetY = e.touches[0].clientY - rect.top;
-      touchClone = li.cloneNode(true);
-      touchClone.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;opacity:0.8;pointer-events:none;z-index:9999;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.15);border-radius:6px;`;
-      touchClone.style.top = (e.touches[0].clientY - touchOffsetY) + 'px';
-      document.body.appendChild(touchClone);
-      li.classList.add('dragging');
-      e.preventDefault();
-    }, { passive: false });
-  });
+  list.addEventListener('touchstart', e => {
+    const handle = e.target.closest('[data-drag-handle]');
+    if (!handle) return;
+    const li = handle.closest('[data-todo-id]');
+    touchDragId = li.dataset.todoId;
+    const rect = li.getBoundingClientRect();
+    touchOffsetY = e.touches[0].clientY - rect.top;
+    touchClone = li.cloneNode(true);
+    touchClone.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;opacity:0.8;pointer-events:none;z-index:9999;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);border-radius:6px;`;
+    touchClone.style.top = (e.touches[0].clientY - touchOffsetY) + 'px';
+    document.body.appendChild(touchClone);
+    li.classList.add('dragging');
+    e.preventDefault();
+  }, { passive: false, signal: list._abortCtrl.signal });
 
   list.addEventListener('touchmove', e => {
     if (!touchDragId || !touchClone) return;
@@ -12922,26 +12919,26 @@ function renderDrawerTodos() {
     touchClone.style.top = (y - touchOffsetY) + 'px';
     clearDragStyles();
     list.querySelector(`[data-todo-id="${touchDragId}"]`)?.classList.add('dragging');
-    const els = [...list.querySelectorAll('[data-todo-id]')].filter(el => el.dataset.todoId !== touchDragId);
-    for (const el of els) {
+    for (const el of list.querySelectorAll('[data-todo-id]')) {
+      if (el.dataset.todoId === touchDragId) continue;
       const rect = el.getBoundingClientRect();
       if (y >= rect.top && y <= rect.bottom) {
-        const position = y < rect.top + rect.height / 2 ? 'top' : 'bottom';
-        el.classList.add(position === 'top' ? 'drag-over-top' : 'drag-over-bottom');
-        el.dataset.dropPosition = position;
+        const pos = y < rect.top + rect.height / 2 ? 'top' : 'bottom';
+        el.classList.add(pos === 'top' ? 'drag-over-top' : 'drag-over-bottom');
+        el.dataset.dropPosition = pos;
         break;
       }
     }
-  }, { passive: false });
+  }, { passive: false, signal: list._abortCtrl.signal });
 
   list.addEventListener('touchend', () => {
     if (!touchDragId) return;
-    if (touchClone) { touchClone.remove(); touchClone = null; }
+    touchClone?.remove(); touchClone = null;
     const target = list.querySelector('.drag-over-top, .drag-over-bottom');
     if (target) reorderTodos(touchDragId, target.dataset.todoId, target.dataset.dropPosition || 'top');
-    else { clearDragStyles(); }
+    else clearDragStyles();
     touchDragId = null;
-  });
+  }, sig);
 }
 
 function closeDrawer() {

@@ -12385,6 +12385,33 @@ const CAL_COLORS = {
   'hyunchang.kang@gmcusa.org': '#6b46c1',
 };
 
+function mergeDuplicateCalMinistries() {
+  // 같은 calendarName인데 gcalId가 다른 중복 미니스트리를 병합
+  let changed = false;
+  Object.values(data).forEach(wk => {
+    const seen = {}; // name → ministry
+    const toRemove = [];
+    wk.ministries.forEach(m => {
+      if (!m.gcalId) return;
+      const key = m.name;
+      if (seen[key]) {
+        // 중복: todos를 기존에 합치고 제거 목록에 추가
+        seen[key].todos.push(...m.todos.filter(t =>
+          !seen[key].todos.some(x => x.gcalEventId && x.gcalEventId === t.gcalEventId)
+        ));
+        toRemove.push(m.id);
+        changed = true;
+      } else {
+        seen[key] = m;
+      }
+    });
+    if (toRemove.length) {
+      wk.ministries = wk.ministries.filter(m => !toRemove.includes(m.id));
+    }
+  });
+  if (changed) saveData();
+}
+
 function importGCalEvents() {
   if (!window.GCAL_EVENTS || !window.GCAL_EVENTS.length) return;
 
@@ -12398,7 +12425,16 @@ function importGCalEvents() {
     if (!data[key]) data[key] = { ministries: [] };
     const wk = data[key];
 
+    // gcalId로 먼저 찾고, 없으면 calendarName으로 찾아 gcalId 업데이트
     let ministry = wk.ministries.find(m => m.gcalId === ev.calendarId);
+    if (!ministry) {
+      const byName = wk.ministries.find(m => m.gcalId && m.name === (ev.calendarName || ''));
+      if (byName) {
+        byName.gcalId = ev.calendarId;
+        ministry = byName;
+        changed = true;
+      }
+    }
     if (!ministry) {
       ministry = {
         id: uid(),
@@ -12925,6 +12961,7 @@ document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 // ── Init ──────────────────────────────────────────────────────────────────
 cleanupDuplicateTodos();
 removeCalendarMinistries('seonghyeon.bak@gmcusa.org');
+mergeDuplicateCalMinistries();
 importGCalEvents();
 renderCards();
 checkDueNotifications();

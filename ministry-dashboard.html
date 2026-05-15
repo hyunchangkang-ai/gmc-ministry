@@ -1942,6 +1942,7 @@ const CATEGORIES = [
 ];
 const STORAGE_KEY = 'gmc_ministry_v2';
 const CUSTOM_CAT_KEY = 'gmc_custom_categories_v1';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtEkIxLFi3Zw8B81xXJ2k6ARGmid4_aNPjmPEm5dVswZnerKw9eI67UdqbWKjxVOlnVw/exec';
 
 // ── Auto-category detection ────────────────────────────────────────────────
 const CAT_KEYWORDS = [
@@ -2054,9 +2055,8 @@ function loadData() {
 
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  // 로컬 서버에 동기화 (ministry_report.py가 읽는 ministry_data.json 생성)
   try {
-    fetch('http://127.0.0.1:8765/save', {
+    fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       body: JSON.stringify(data)
@@ -3097,8 +3097,24 @@ removeCalendarMinistries('seonghyeon.bak@gmcusa.org');
 importGCalEvents();
 renderCards();
 checkDueNotifications();
-// 페이지 로드 시 서버에 데이터 동기화 (ministry_report.py가 최신 데이터를 읽을 수 있도록)
 saveData();
+
+// 새 기기에서 처음 열 때 Sheets에서 자동 로드
+if (Object.keys(data).length === 0) {
+  showToast('☁️ 데이터 불러오는 중...');
+  fetch(APPS_SCRIPT_URL)
+    .then(r => r.json())
+    .then(fresh => {
+      if (fresh && Object.keys(fresh).length > 0) {
+        Object.assign(data, fresh);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        importGCalEvents();
+        renderCards();
+        showToast('☁️ 데이터 로드 완료');
+      }
+    })
+    .catch(() => {});
+}
 
 // ── Google Sheets 동기화 ──────────────────────────────────────────────────
 async function syncSheets() {
@@ -3107,16 +3123,15 @@ async function syncSheets() {
   btn.textContent = '⏳ 동기화 중...';
   btn.disabled = true;
   try {
-    // 1) 현재 데이터 서버에 push (서버가 자동으로 Sheets에 올림)
-    await fetch('http://127.0.0.1:8765/save', {
+    // 1) Apps Script에 현재 데이터 push
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     });
-    // 2) Sheets에서 최신 데이터 pull
+    // 2) Apps Script에서 최신 데이터 pull
     const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 8000);
-    const r = await fetch('http://127.0.0.1:8765/pull', { signal: ctrl.signal });
+    const tid = setTimeout(() => ctrl.abort(), 15000);
+    const r = await fetch(APPS_SCRIPT_URL, { signal: ctrl.signal });
     clearTimeout(tid);
     if (r.ok) {
       const fresh = await r.json();
@@ -3132,7 +3147,7 @@ async function syncSheets() {
       showToast('☁️ 업로드 완료');
     }
   } catch(e) {
-    showToast('⚠️ 서버 연결 필요 (ministry_server.py)');
+    showToast('⚠️ 동기화 실패: ' + e.message);
   }
   btn.textContent = orig;
   btn.disabled = false;

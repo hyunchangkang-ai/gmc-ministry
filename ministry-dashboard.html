@@ -10684,6 +10684,36 @@
     }
     .todo-add-row1 { display: flex; gap: 6px; }
     .todo-add-row2 { display: flex; gap: 6px; }
+    .todo-item-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+    .todo-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .event-date-input {
+      border: 1px solid var(--primary-light);
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-size: 0.72rem;
+      color: var(--primary);
+      background: #f0f7ff;
+      outline: none;
+      width: 118px;
+      flex-shrink: 0;
+    }
+    .event-date-input.empty {
+      border-color: #cbd5e0;
+      background: #f7fafc;
+      color: #a0aec0;
+    }
+    .event-date-input:focus { border-color: var(--primary); background: #e8f0fe; }
     .todo-add-date, .todo-add-time {
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -12825,9 +12855,14 @@ function renderDrawerTodos() {
     return `<li class="todo-item${getDueStatus(t) ? ' is-'+getDueStatus(t) : ''}" data-todo-id="${t.id}" draggable="true">
       <span class="drag-handle" data-drag-handle title="드래그하여 순서 변경">⠿</span>
       <input type="checkbox" ${t.done?'checked':''} data-todo-check />
-      <textarea class="todo-text${t.done?' done':''}" data-todo-text rows="1">${escHtml(t.text)}</textarea>
-      ${getDueStatus(t) ? `<span class="due-badge ${getDueStatus(t)}">${DUE_LABEL[getDueStatus(t)]}</span>` : ''}
-      <input type="date" class="due-input${getDueStatus(t)?' '+getDueStatus(t):''}" data-due-input value="${t.dueDate||''}" title="마감일" />
+      <div class="todo-item-body">
+        <textarea class="todo-text${t.done?' done':''}" data-todo-text rows="1">${escHtml(t.text)}</textarea>
+        <div class="todo-item-meta">
+          <input type="date" class="event-date-input${t.date?'':' empty'}" data-event-date value="${t.date||''}" title="일정 날짜" />
+          ${getDueStatus(t) ? `<span class="due-badge ${getDueStatus(t)}">${DUE_LABEL[getDueStatus(t)]}</span>` : ''}
+          <input type="date" class="due-input${getDueStatus(t)?' '+getDueStatus(t):''}" data-due-input value="${t.dueDate||''}" title="마감일" />
+        </div>
+      </div>
       <button class="todo-del" data-todo-del>✕</button>
     </li>`;
   }
@@ -12857,15 +12892,27 @@ function renderDrawerTodos() {
   const sig = { signal: list._abortCtrl.signal };
 
   list.addEventListener('change', e => {
+    const li = e.target.closest('[data-todo-id]');
+    if (!li) return;
+    const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
+    if (!todo) return;
     if (e.target.matches('[data-todo-check]')) {
-      const li = e.target.closest('[data-todo-id]');
-      const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
-      if (todo) { todo.done = e.target.checked; saveData(); renderDrawerTodos(); renderCards(); }
+      todo.done = e.target.checked; saveData(); renderDrawerTodos(); renderCards();
     }
     if (e.target.matches('[data-due-input]')) {
-      const li = e.target.closest('[data-todo-id]');
-      const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
-      if (todo) { todo.dueDate = e.target.value || null; saveData(); renderDrawerTodos(); renderCards(); }
+      todo.dueDate = e.target.value || null; saveData(); renderDrawerTodos(); renderCards();
+    }
+    if (e.target.matches('[data-event-date]')) {
+      todo.date = e.target.value || '';
+      // 날짜 변경 시 목록 재정렬
+      const m = getDrawerM();
+      m.todos.sort((a, b) => {
+        const da = a.date || '9999-99-99', db = b.date || '9999-99-99';
+        if (da !== db) return da < db ? -1 : 1;
+        const ta = a.time || '99:99', tb = b.time || '99:99';
+        return ta < tb ? -1 : ta > tb ? 1 : 0;
+      });
+      saveData(); renderDrawerTodos(); renderCards();
     }
   }, sig);
 

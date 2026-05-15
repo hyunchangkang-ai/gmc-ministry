@@ -10760,6 +10760,16 @@
       flex-shrink: 0;
     }
     .todo-del:hover { color: #e53e3e; }
+    .drawer-date-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 10px 0 3px;
+      border-left: 3px solid var(--primary);
+      padding-left: 6px;
+      user-select: none;
+    }
+    .drawer-date-header:first-child { margin-top: 2px; }
     .drag-handle {
       cursor: grab;
       color: #cbd5e0;
@@ -12721,16 +12731,43 @@ function renderDrawerTodos() {
   const m = getDrawerM();
   if (!m) return;
   const list = document.getElementById('drawerTodoList');
-  list.innerHTML = m.todos.map(t => `
-    <li class="todo-item${getDueStatus(t) ? ' is-'+getDueStatus(t) : ''}" data-todo-id="${t.id}">
+  // 날짜별 그룹핑
+  const groups = {};
+  const noDate = [];
+  m.todos.forEach(t => {
+    if (t.date) { if (!groups[t.date]) groups[t.date] = []; groups[t.date].push(t); }
+    else noDate.push(t);
+  });
+  const dateKeys = Object.keys(groups).sort();
+  const useGroups = dateKeys.length > 1 || (dateKeys.length === 1 && noDate.length > 0);
+
+  function todoItemHtml(t) {
+    return `<li class="todo-item${getDueStatus(t) ? ' is-'+getDueStatus(t) : ''}" data-todo-id="${t.id}">
       <span class="drag-handle" data-drag-handle title="드래그하여 순서 변경">⠿</span>
       <input type="checkbox" ${t.done?'checked':''} data-todo-check />
       <textarea class="todo-text${t.done?' done':''}" data-todo-text rows="1">${escHtml(t.text)}</textarea>
       ${getDueStatus(t) ? `<span class="due-badge ${getDueStatus(t)}">${DUE_LABEL[getDueStatus(t)]}</span>` : ''}
       <input type="date" class="due-input${getDueStatus(t)?' '+getDueStatus(t):''}" data-due-input value="${t.dueDate||''}" title="마감일" />
       <button class="todo-del" data-todo-del>✕</button>
-    </li>
-  `).join('');
+    </li>`;
+  }
+
+  if (useGroups) {
+    let html = '';
+    dateKeys.forEach(date => {
+      const d = new Date(date + 'T00:00:00');
+      const label = `${d.getMonth()+1}/${d.getDate()} ${_DAY_KO[d.getDay()]}`;
+      html += `<li class="drawer-date-header">${label}</li>`;
+      html += groups[date].map(todoItemHtml).join('');
+    });
+    if (noDate.length) {
+      if (dateKeys.length) html += `<li class="drawer-date-header">날짜 미정</li>`;
+      html += noDate.map(todoItemHtml).join('');
+    }
+    list.innerHTML = html;
+  } else {
+    list.innerHTML = m.todos.map(todoItemHtml).join('');
+  }
 
   list.querySelectorAll('[data-todo-text]').forEach(ta => setTimeout(() => autoResize.call(ta), 0));
 

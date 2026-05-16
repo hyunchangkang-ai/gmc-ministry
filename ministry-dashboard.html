@@ -3034,12 +3034,29 @@ async function syncSheets() {
         Object.keys(fresh).forEach(wk => { if (!data[wk]) data[wk] = fresh[wk]; });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         renderCards();
-        showToast('☁️ Google Sheets 동기화 완료');
-      } else {
-        showToast('☁️ 업로드 완료 (Sheets에 데이터 없음)');
       }
-    } else {
-      showToast('☁️ 업로드 완료');
+    }
+    // 3) 구글 캘린더 이벤트 동기화
+    try {
+      const calCtrl = new AbortController();
+      const calTid = setTimeout(() => calCtrl.abort(), 15000);
+      const calR = await fetch(APPS_SCRIPT_URL + '?action=gcal_events', { signal: calCtrl.signal });
+      clearTimeout(calTid);
+      if (calR.ok) {
+        const freshEvents = await calR.json();
+        if (Array.isArray(freshEvents) && freshEvents.length > 0) {
+          window.GCAL_EVENTS = freshEvents;
+          importGCalEvents();
+          saveData();
+          showToast('☁️ 동기화 완료 (캘린더 포함)');
+        } else {
+          showToast('☁️ 동기화 완료');
+        }
+      } else {
+        showToast('☁️ 동기화 완료');
+      }
+    } catch(calE) {
+      showToast('☁️ 동기화 완료 (캘린더 불러오기 실패)');
     }
   } catch(e) {
     showToast('⚠️ 동기화 실패: ' + e.message);

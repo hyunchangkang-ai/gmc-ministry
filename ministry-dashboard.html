@@ -2773,6 +2773,14 @@ function renderDrawerTodos() {
     else noDate.push(t);
   });
   const dateKeys = Object.keys(groups).sort();
+  // 각 날짜 그룹 내 시간순 정렬
+  dateKeys.forEach(d => {
+    groups[d].sort((a, b) => {
+      const ta = a.time || '99:99';
+      const tb = b.time || '99:99';
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
+  });
   const useGroups = dateKeys.length > 1 || (dateKeys.length === 1 && noDate.length > 0);
 
   function todoItemHtml(t) {
@@ -2805,7 +2813,15 @@ function renderDrawerTodos() {
     }
     list.innerHTML = html;
   } else {
-    list.innerHTML = m.todos.map(todoItemHtml).join('');
+    const sorted = [...m.todos].sort((a, b) => {
+      const da = a.date || '9999-99-99';
+      const db = b.date || '9999-99-99';
+      if (da !== db) return da < db ? -1 : 1;
+      const ta = a.time || '99:99';
+      const tb = b.time || '99:99';
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
+    list.innerHTML = sorted.map(todoItemHtml).join('');
   }
 
   list.querySelectorAll('[data-todo-text]').forEach(ta => setTimeout(() => autoResize.call(ta), 0));

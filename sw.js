@@ -1,4 +1,4 @@
-const CACHE = 'gmc-v2';
+const CACHE = 'gmc-v3';
 const ASSETS = [
   '/gmc-ministry/ministry-dashboard.html',
   '/gmc-ministry/annual-dashboard.html',

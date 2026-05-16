@@ -1846,9 +1846,20 @@ function renderTodoItems(todos) {
   }).join('')}</ul>`;
 }
 
+function sortTodosByDateTime(todos) {
+  return [...todos].sort((a, b) => {
+    const da = a.date || '9999-99-99';
+    const db = b.date || '9999-99-99';
+    if (da !== db) return da < db ? -1 : 1;
+    const ta = a.time || '99:99';
+    const tb = b.time || '99:99';
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  });
+}
+
 function buildTodoListHtml(todos) {
-  // 특정 날짜 선택됐거나 날짜 없는 todo만 있으면 평면 표시
-  if (selectedDay || !todos.some(t => t.date)) return renderTodoItems(todos);
+  // 특정 날짜 선택됐거나 날짜 없는 todo만 있으면 평면 표시 (시간순 정렬)
+  if (selectedDay || !todos.some(t => t.date)) return renderTodoItems(sortTodosByDateTime(todos));
   // 전체 주: 날짜별 그룹핑
   const groups = {};
   const noDate = [];
@@ -1857,6 +1868,14 @@ function buildTodoListHtml(todos) {
     else noDate.push(t);
   });
   const dateKeys = Object.keys(groups).sort();
+  // 각 날짜 그룹 내 시간순 정렬
+  dateKeys.forEach(d => {
+    groups[d].sort((a, b) => {
+      const ta = a.time || '99:99';
+      const tb = b.time || '99:99';
+      return ta < tb ? -1 : ta > tb ? 1 : 0;
+    });
+  });
   // 날짜가 하나뿐이면 헤더 없이 평면 표시
   if (dateKeys.length <= 1 && !noDate.length) return renderTodoItems(todos);
   let html = '';
@@ -1883,6 +1902,7 @@ function buildCard(m) {
     const hasDated = m.todos.some(t => t.date);
     if (hasDated) filteredTodos = m.todos.filter(t => !t.date || t.date === selectedDay);
   }
+  filteredTodos = sortTodosByDateTime(filteredTodos);
   const previewTodos = filteredTodos.slice(0, 5);
   const hiddenCount = filteredTodos.length - previewTodos.length;
 

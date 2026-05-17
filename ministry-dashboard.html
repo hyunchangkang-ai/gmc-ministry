@@ -2442,6 +2442,7 @@ function cleanupDuplicateTodos() {
 function removeCalendarMinistries(calendarId) {
   let changed = false;
   Object.values(data).forEach(wk => {
+    if (!wk || typeof wk !== 'object' || !Array.isArray(wk.ministries)) return;
     const before = wk.ministries.length;
     wk.ministries = wk.ministries.filter(m => m.gcalId !== calendarId);
     if (wk.ministries.length !== before) changed = true;
@@ -2460,6 +2461,7 @@ function mergeDuplicateCalMinistries() {
   // 같은 calendarName인데 gcalId가 다른 중복 미니스트리를 병합
   let changed = false;
   Object.values(data).forEach(wk => {
+    if (!wk || typeof wk !== 'object' || !Array.isArray(wk.ministries)) return;
     const seen = {}; // name → ministry
     const toRemove = [];
     wk.ministries.forEach(m => {
@@ -3152,6 +3154,12 @@ document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 
 // ── Init ──────────────────────────────────────────────────────────────────
+// 비정상 키(__synctest 등) 정리 - YYYY-MM-DD 형식 주차 키만 남김
+Object.keys(data).forEach(k => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !data[k] || typeof data[k] !== 'object' || !Array.isArray(data[k].ministries)) {
+    delete data[k];
+  }
+});
 // 각 단계 try-catch로 감싸서 한 함수가 실패해도 렌더링은 보장
 try { cleanupDuplicateTodos(); } catch(e) { console.error('cleanupDuplicateTodos:', e); }
 try { removeCalendarMinistries('seonghyeon.bak@gmcusa.org'); } catch(e) { console.error('removeCalendarMinistries:', e); }

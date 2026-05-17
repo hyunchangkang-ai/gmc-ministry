@@ -1733,30 +1733,36 @@ function loadData() {
   } catch { return {}; }
 }
 
-// 각 주차에서 gcalId 중복 사역 제거 (todos는 먼저 등장한 사역으로 병합)
+// gcalId 중복 사역 제거 + 기존 uid ID를 stableId로 마이그레이션
 function deduplicateMinistries() {
   let changed = false;
-  Object.values(data).forEach(wk => {
-    const seen = {};
+  Object.keys(data).forEach(wk => {
+    const seen = {}; // gcalId → ministry
     const deduped = [];
-    (wk.ministries || []).forEach(m => {
-      const key = m.gcalId || m.id;
-      if (!seen[key]) {
-        seen[key] = m;
-        deduped.push(m);
+    (data[wk].ministries || []).forEach(m => {
+      if (m.gcalId) {
+        // 고정 ID로 마이그레이션
+        const stableId = 'gcalm_' + wk + '_' + m.gcalId.replace(/[^a-zA-Z0-9]/g, '_');
+        if (m.id !== stableId) { m.id = stableId; changed = true; }
+        if (!seen[m.gcalId]) {
+          seen[m.gcalId] = m;
+          deduped.push(m);
+        } else {
+          // 중복 사역 todos 병합
+          (m.todos || []).forEach(t => {
+            const dup = seen[m.gcalId].todos.find(x =>
+              x.id === t.id ||
+              (t.gcalEventId && x.gcalEventId === t.gcalEventId)
+            );
+            if (!dup) seen[m.gcalId].todos.push(t);
+          });
+          changed = true;
+        }
       } else {
-        // 중복 사역의 todos를 먼저 등장한 사역으로 합침
-        (m.todos || []).forEach(t => {
-          const dup = seen[key].todos.find(x =>
-            x.id === t.id ||
-            (t.gcalEventId && x.gcalEventId === t.gcalEventId)
-          );
-          if (!dup) seen[key].todos.push(t);
-        });
-        changed = true;
+        deduped.push(m);
       }
     });
-    wk.ministries = deduped;
+    data[wk].ministries = deduped;
   });
   if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -2449,8 +2455,10 @@ function importGCalEvents() {
       }
     }
     if (!ministry) {
+      // 고정 ID 사용: 모든 기기에서 동일한 사역 ID 보장
+      const stableId = 'gcalm_' + key + '_' + ev.calendarId.replace(/[^a-zA-Z0-9]/g, '_');
       ministry = {
-        id: uid(),
+        id: stableId,
         gcalId: ev.calendarId,
         name: ev.calendarName || '📅 캘린더',
         owner: '',

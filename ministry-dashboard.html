@@ -1733,6 +1733,34 @@ function loadData() {
   } catch { return {}; }
 }
 
+// 각 주차에서 gcalId 중복 사역 제거 (todos는 먼저 등장한 사역으로 병합)
+function deduplicateMinistries() {
+  let changed = false;
+  Object.values(data).forEach(wk => {
+    const seen = {};
+    const deduped = [];
+    (wk.ministries || []).forEach(m => {
+      const key = m.gcalId || m.id;
+      if (!seen[key]) {
+        seen[key] = m;
+        deduped.push(m);
+      } else {
+        // 중복 사역의 todos를 먼저 등장한 사역으로 합침
+        (m.todos || []).forEach(t => {
+          const dup = seen[key].todos.find(x =>
+            x.id === t.id ||
+            (t.gcalEventId && x.gcalEventId === t.gcalEventId)
+          );
+          if (!dup) seen[key].todos.push(t);
+        });
+        changed = true;
+      }
+    });
+    wk.ministries = deduped;
+  });
+  if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   try {
@@ -3067,6 +3095,7 @@ document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 cleanupDuplicateTodos();
 removeCalendarMinistries('seonghyeon.bak@gmcusa.org');
 mergeDuplicateCalMinistries();
+deduplicateMinistries();
 importGCalEvents();
 renderCards();
 checkDueNotifications();
@@ -3096,7 +3125,11 @@ fetch(APPS_SCRIPT_URL)
           // 있는 주차는 ministry/todo 단위로 병합
           const freshMins = (fresh[wk].ministries || []);
           freshMins.forEach(freshM => {
-            const localM = data[wk].ministries.find(m => m.id === freshM.id);
+            // id 또는 gcalId로 기존 사역 찾기 (기기마다 uid 다를 수 있음)
+            const localM = data[wk].ministries.find(m =>
+              m.id === freshM.id ||
+              (freshM.gcalId && m.gcalId === freshM.gcalId)
+            );
             if (!localM) {
               // 없는 사역 추가
               data[wk].ministries.push(freshM);
@@ -3144,7 +3177,10 @@ async function syncSheets() {
             data[wk] = fresh[wk];
           } else {
             (fresh[wk].ministries || []).forEach(freshM => {
-              const localM = data[wk].ministries.find(m => m.id === freshM.id);
+              const localM = data[wk].ministries.find(m =>
+                m.id === freshM.id ||
+                (freshM.gcalId && m.gcalId === freshM.gcalId)
+              );
               if (!localM) {
                 data[wk].ministries.push(freshM);
               } else {

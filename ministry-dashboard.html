@@ -3073,9 +3073,9 @@ checkDueNotifications();
 // 시작 시 localStorage에만 저장 (빈 데이터로 Apps Script 덮어쓰기 방지)
 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
-// 시작 시 항상 Apps Script 데이터를 가져와 병합
+// 시작 시 Apps Script 데이터를 가져와 병합
 // - localStorage 비어있으면 전체 복원
-// - 데이터 있으면 로컬에 없는 주차만 추가 (로컬 데이터 보호)
+// - 데이터 있으면 할 일 단위로 병합 (다른 기기에서 추가된 항목 반영)
 fetch(APPS_SCRIPT_URL)
   .then(r => r.json())
   .then(fresh => {
@@ -3088,7 +3088,30 @@ fetch(APPS_SCRIPT_URL)
       showToast('☁️ 데이터 복원 완료');
     } else {
       Object.keys(fresh).forEach(wk => {
-        if (!data[wk]) { data[wk] = fresh[wk]; changed = true; }
+        if (!data[wk]) {
+          // 없는 주차는 통째로 추가
+          data[wk] = fresh[wk];
+          changed = true;
+        } else {
+          // 있는 주차는 ministry/todo 단위로 병합
+          const freshMins = (fresh[wk].ministries || []);
+          freshMins.forEach(freshM => {
+            const localM = data[wk].ministries.find(m => m.id === freshM.id);
+            if (!localM) {
+              // 없는 사역 추가
+              data[wk].ministries.push(freshM);
+              changed = true;
+            } else {
+              // 있는 사역: 없는 할 일만 추가
+              (freshM.todos || []).forEach(freshT => {
+                if (!localM.todos.find(t => t.id === freshT.id)) {
+                  localM.todos.push(freshT);
+                  changed = true;
+                }
+              });
+            }
+          });
+        }
       });
     }
     if (changed) {
@@ -3119,8 +3142,25 @@ async function syncSheets() {
     if (r.ok) {
       const fresh = await r.json();
       if (fresh && Object.keys(fresh).length > 0) {
-        // 로컬에 없는 주차만 가져옴 (로컬 데이터 보호)
-        Object.keys(fresh).forEach(wk => { if (!data[wk]) data[wk] = fresh[wk]; });
+        // 할 일 단위로 병합 (다른 기기에서 추가된 항목 반영)
+        Object.keys(fresh).forEach(wk => {
+          if (!data[wk]) {
+            data[wk] = fresh[wk];
+          } else {
+            (fresh[wk].ministries || []).forEach(freshM => {
+              const localM = data[wk].ministries.find(m => m.id === freshM.id);
+              if (!localM) {
+                data[wk].ministries.push(freshM);
+              } else {
+                (freshM.todos || []).forEach(freshT => {
+                  if (!localM.todos.find(t => t.id === freshT.id)) {
+                    localM.todos.push(freshT);
+                  }
+                });
+              }
+            });
+          }
+        });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         renderCards();
       }

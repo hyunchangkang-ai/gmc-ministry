@@ -2871,7 +2871,7 @@ function renderDrawerTodos() {
     }
     list.innerHTML = html;
   } else {
-    const sorted = [...m.todos].sort((a, b) => {
+    const sorted = [...baseTodos].sort((a, b) => {
       const da = a.date || '9999-99-99';
       const db = b.date || '9999-99-99';
       if (da !== db) return da < db ? -1 : 1;

@@ -11,7 +11,18 @@
   <meta name="apple-mobile-web-app-title" content="GMC 사역" />
   <meta name="theme-color" content="#1a3a5c" />
   <script>
-    if ('serviceWorker' in navigator) {
+    // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
+    const _APP_VER = '6';
+    if (localStorage.getItem('_appVer') !== _APP_VER) {
+      localStorage.setItem('_appVer', _APP_VER);
+      if ('caches' in window) caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k))));
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          if (regs.length) { regs.forEach(r => r.unregister()); location.reload(); }
+          else navigator.serviceWorker.register('/gmc-ministry/sw.js');
+        });
+      }
+    } else if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/gmc-ministry/sw.js');
     }
   </script>

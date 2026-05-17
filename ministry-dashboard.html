@@ -1791,13 +1791,41 @@ function deduplicateMinistries() {
   if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+// Apps Script 저장용: 캘린더 자동생성 항목 제외 (셀 용량 50,000자 초과 방지)
+function dataForSync() {
+  const d = {};
+  Object.keys(data).forEach(wk => {
+    const wkData = data[wk];
+    if (!wkData || !wkData.ministries) return;
+    const mins = [];
+    wkData.ministries.forEach(m => {
+      if (!m.gcalId) {
+        // 사람이 직접 만든 사역: 전체 저장
+        mins.push(m);
+      } else {
+        // 캘린더 사역: 사람이 직접 추가한 할일만 저장 (gcalEventId 없는 것)
+        const userTodos = (m.todos || []).filter(t => !t.gcalEventId);
+        if (userTodos.length > 0) {
+          mins.push(Object.assign({}, m, { todos: userTodos }));
+        }
+        // 사람 추가 할일 없으면 통째로 생략
+      }
+    });
+    if (mins.length > 0) {
+      d[wk] = Object.assign({}, wkData, { ministries: mins });
+    }
+  });
+  return d;
+}
+
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   try {
+    const payload = JSON.stringify(dataForSync());
     fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      body: JSON.stringify(data)
+      body: payload
     }).catch(() => {});
   } catch(e) {}
 }
@@ -3140,15 +3168,19 @@ localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 fetch(APPS_SCRIPT_URL)
   .then(r => r.json())
   .then(fresh => {
-    if (!fresh || typeof fresh !== 'object' || Object.keys(fresh).length === 0) return;
-    const localEmpty = Object.keys(data).length === 0;
+    if (!fresh || typeof fresh !== 'object') return;
+    // 유효한 주차 키(YYYY-MM-DD)가 하나도 없으면 무시 (오염된 데이터 방지)
+    const freshWeekKeys = Object.keys(fresh).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+    if (freshWeekKeys.length === 0) return;
+    const localWeekKeys = Object.keys(data).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+    const localEmpty = localWeekKeys.length === 0;
     let changed = false;
     if (localEmpty) {
-      Object.assign(data, fresh);
+      freshWeekKeys.forEach(k => { data[k] = fresh[k]; });
       changed = true;
       showToast('☁️ 데이터 복원 완료');
     } else {
-      Object.keys(fresh).forEach(wk => {
+      freshWeekKeys.forEach(wk => {
         if (!data[wk]) {
           // 없는 주차는 통째로 추가
           data[wk] = fresh[wk];
@@ -3234,10 +3266,10 @@ async function syncSheets() {
       }
       showToast(`☁️ 서버에서 할 일 ${addedTodos}개·사역 ${addedMins}개 추가됨`);
     }
-    // 2) 병합된 데이터를 Apps Script에 push
+    // 2) 병합된 데이터를 Apps Script에 push (캘린더 자동생성 제외)
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      body: JSON.stringify(data)
+      body: JSON.stringify(dataForSync())
     });
     // 3) 구글 캘린더 이벤트 동기화
     try {

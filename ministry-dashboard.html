@@ -3104,10 +3104,11 @@ fetch(APPS_SCRIPT_URL)
             } else {
               // 있는 사역: 없는 할 일만 추가
               (freshM.todos || []).forEach(freshT => {
-                if (!localM.todos.find(t => t.id === freshT.id)) {
-                  localM.todos.push(freshT);
-                  changed = true;
-                }
+                const dup = localM.todos.find(t =>
+                  t.id === freshT.id ||
+                  (freshT.gcalEventId && t.gcalEventId === freshT.gcalEventId)
+                );
+                if (!dup) { localM.todos.push(freshT); changed = true; }
               });
             }
           });
@@ -3129,12 +3130,7 @@ async function syncSheets() {
   btn.textContent = '⏳ 동기화 중...';
   btn.disabled = true;
   try {
-    // 1) Apps Script에 현재 데이터 push
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify(data)
-    });
-    // 2) Apps Script에서 최신 데이터 pull
+    // 1) Apps Script에서 최신 데이터 pull 먼저
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 15000);
     const r = await fetch(APPS_SCRIPT_URL, { signal: ctrl.signal });
@@ -3142,7 +3138,7 @@ async function syncSheets() {
     if (r.ok) {
       const fresh = await r.json();
       if (fresh && Object.keys(fresh).length > 0) {
-        // 할 일 단위로 병합 (다른 기기에서 추가된 항목 반영)
+        // 할 일 단위 병합 (id 또는 gcalEventId 기준 중복 방지)
         Object.keys(fresh).forEach(wk => {
           if (!data[wk]) {
             data[wk] = fresh[wk];
@@ -3153,9 +3149,11 @@ async function syncSheets() {
                 data[wk].ministries.push(freshM);
               } else {
                 (freshM.todos || []).forEach(freshT => {
-                  if (!localM.todos.find(t => t.id === freshT.id)) {
-                    localM.todos.push(freshT);
-                  }
+                  const dup = localM.todos.find(t =>
+                    t.id === freshT.id ||
+                    (freshT.gcalEventId && t.gcalEventId === freshT.gcalEventId)
+                  );
+                  if (!dup) localM.todos.push(freshT);
                 });
               }
             });
@@ -3165,6 +3163,11 @@ async function syncSheets() {
         renderCards();
       }
     }
+    // 2) 병합된 데이터를 Apps Script에 push
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify(data)
+    });
     // 3) 구글 캘린더 이벤트 동기화
     try {
       const calCtrl = new AbortController();

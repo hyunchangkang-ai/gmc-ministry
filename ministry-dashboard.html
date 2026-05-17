@@ -1733,6 +1733,15 @@ function loadData() {
   } catch { return {}; }
 }
 
+// 반복 이벤트 ID 정규화: _20260512T130000Z 날짜 접미사 제거
+function gcalBaseId(id) {
+  return (id || '').replace(/_\d{8}T\d{6}Z$/, '');
+}
+function gcalIdMatch(a, b) {
+  if (!a || !b) return false;
+  return a === b || gcalBaseId(a) === gcalBaseId(b);
+}
+
 // gcalId 중복 사역 제거 + 기존 uid ID를 stableId로 마이그레이션
 function deduplicateMinistries() {
   let changed = false;
@@ -1752,7 +1761,7 @@ function deduplicateMinistries() {
           (m.todos || []).forEach(t => {
             const dup = seen[m.gcalId].todos.find(x =>
               x.id === t.id ||
-              (t.gcalEventId && x.gcalEventId === t.gcalEventId)
+              gcalIdMatch(t.gcalEventId, x.gcalEventId)
             );
             if (!dup) seen[m.gcalId].todos.push(t);
           });
@@ -1763,6 +1772,21 @@ function deduplicateMinistries() {
       }
     });
     data[wk].ministries = deduped;
+    // 각 사역 내 gcalEventId 기준 중복 할 일 제거
+    data[wk].ministries.forEach(m => {
+      const seenTodos = {};
+      const dedupedTodos = [];
+      (m.todos || []).forEach(t => {
+        const tkey = t.gcalEventId ? gcalBaseId(t.gcalEventId) : t.id;
+        if (!seenTodos[tkey]) {
+          seenTodos[tkey] = true;
+          dedupedTodos.push(t);
+        } else {
+          changed = true;
+        }
+      });
+      m.todos = dedupedTodos;
+    });
   });
   if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -2476,7 +2500,7 @@ function importGCalEvents() {
     const timeLabel = ev.time ? `[${ev.time}] ` : '';
     const cleanTitle = ev.title.trim();
     const existingTodo = ministry.todos.find(t =>
-      t.gcalEventId === ev.id ||
+      gcalIdMatch(t.gcalEventId, ev.id) ||
       (t.date === ev.date && t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === cleanTitle)
     );
     if (!existingTodo) {
@@ -3147,7 +3171,7 @@ fetch(APPS_SCRIPT_URL)
               (freshM.todos || []).forEach(freshT => {
                 const dup = localM.todos.find(t =>
                   t.id === freshT.id ||
-                  (freshT.gcalEventId && t.gcalEventId === freshT.gcalEventId)
+                  gcalIdMatch(t.gcalEventId, freshT.gcalEventId)
                 );
                 if (!dup) { localM.todos.push(freshT); changed = true; }
               });
@@ -3196,7 +3220,7 @@ async function syncSheets() {
                 (freshM.todos || []).forEach(freshT => {
                   const dup = localM.todos.find(t =>
                     t.id === freshT.id ||
-                    (freshT.gcalEventId && t.gcalEventId === freshT.gcalEventId)
+                    gcalIdMatch(t.gcalEventId, freshT.gcalEventId)
                   );
                   if (!dup) { localM.todos.push(freshT); addedTodos++; }
                 });

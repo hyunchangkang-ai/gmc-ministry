@@ -3178,11 +3178,12 @@ async function syncSheets() {
     clearTimeout(tid);
     if (r.ok) {
       const fresh = await r.json();
-      if (fresh && Object.keys(fresh).length > 0) {
-        // 할 일 단위 병합 (id 또는 gcalEventId 기준 중복 방지)
-        Object.keys(fresh).forEach(wk => {
+      const freshWeeks = Object.keys(fresh).filter(k => k.match(/^\d{4}-\d{2}-\d{2}$/));
+      let addedTodos = 0, addedMins = 0;
+      if (fresh && freshWeeks.length > 0) {
+        freshWeeks.forEach(wk => {
           if (!data[wk]) {
-            data[wk] = fresh[wk];
+            data[wk] = fresh[wk]; addedMins++;
           } else {
             (fresh[wk].ministries || []).forEach(freshM => {
               const localM = data[wk].ministries.find(m =>
@@ -3190,14 +3191,14 @@ async function syncSheets() {
                 (freshM.gcalId && m.gcalId === freshM.gcalId)
               );
               if (!localM) {
-                data[wk].ministries.push(freshM);
+                data[wk].ministries.push(freshM); addedMins++;
               } else {
                 (freshM.todos || []).forEach(freshT => {
                   const dup = localM.todos.find(t =>
                     t.id === freshT.id ||
                     (freshT.gcalEventId && t.gcalEventId === freshT.gcalEventId)
                   );
-                  if (!dup) localM.todos.push(freshT);
+                  if (!dup) { localM.todos.push(freshT); addedTodos++; }
                 });
               }
             });
@@ -3205,7 +3206,9 @@ async function syncSheets() {
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         renderCards();
+        if (activeMode === 'ministry') renderDrawerTodos();
       }
+      showToast(`☁️ 서버에서 할 일 ${addedTodos}개·사역 ${addedMins}개 추가됨`);
     }
     // 2) 병합된 데이터를 Apps Script에 push
     await fetch(APPS_SCRIPT_URL, {

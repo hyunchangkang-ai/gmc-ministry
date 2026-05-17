@@ -1272,6 +1272,7 @@
           <input type="time" class="todo-add-time" id="drawerTodoTime" title="시간" />
         </div>
       </div>
+      <div id="drawerDayToggle" style="display:flex;gap:6px;margin:8px 0 4px;"></div>
       <ul class="todo-list" id="drawerTodoList"></ul>
       <div id="todoDetailExtra"></div>
     </div>
@@ -1667,7 +1668,8 @@ let editingMinistryId = null;
 let selectedColor = COLORS[0];
 let filterStatus = 'all';
 let filterCategory = 'all';
-let selectedDay = fmtYMD(new Date()); // 오늘 날짜로 초기화
+let selectedDay = null; // 대시보드는 항상 전체 주 표시
+let drawerShowAll = false; // drawer: false=오늘만, true=전체 주
 
 // ── Date helpers ──────────────────────────────────────────────────────────
 function getTuesdayOfWeek(date) {
@@ -1847,14 +1849,6 @@ function renderCards() {
   if (filterCategory !== 'all') {
     ministries = ministries.filter(m => (m.category || 'other') === filterCategory);
   }
-  // selectedDay 필터링
-  if (selectedDay) {
-    ministries = ministries.filter(m => {
-      const hasDatedTodos = m.todos.some(t => t.date);
-      if (!hasDatedTodos) return true;
-      return m.todos.some(t => !t.date || t.date === selectedDay);
-    });
-  }
   // Pinned first
   ministries.sort((a,b) => (b.pinned?1:0)-(a.pinned?1:0));
 
@@ -1898,8 +1892,8 @@ function sortTodosByDateTime(todos) {
 }
 
 function buildTodoListHtml(todos) {
-  // 특정 날짜 선택됐거나 날짜 없는 todo만 있으면 평면 표시 (시간순 정렬)
-  if (selectedDay || !todos.some(t => t.date)) return renderTodoItems(sortTodosByDateTime(todos));
+  // 날짜 없는 todo만 있으면 평면 표시 (시간순 정렬)
+  if (!todos.some(t => t.date)) return renderTodoItems(sortTodosByDateTime(todos));
   // 전체 주: 날짜별 그룹핑
   const groups = {};
   const noDate = [];
@@ -1936,13 +1930,8 @@ function buildCard(m) {
   const urgentCount = m.todos.filter(t => !t.done && ['overdue','today'].includes(getDueStatus(t))).length;
   const cat = getAllCategories().find(c => c.key === (m.category||'other')) || CATEGORIES.find(c => c.key === 'other');
 
-  // Preview todos: filter by selectedDay or group by date for all-week view
-  let filteredTodos = m.todos;
-  if (selectedDay) {
-    const hasDated = m.todos.some(t => t.date);
-    if (hasDated) filteredTodos = m.todos.filter(t => !t.date || t.date === selectedDay);
-  }
-  filteredTodos = sortTodosByDateTime(filteredTodos);
+  // 전체 주 todos 날짜·시간순 정렬
+  let filteredTodos = sortTodosByDateTime(m.todos);
   const previewTodos = filteredTodos.slice(0, 5);
   const hiddenCount = filteredTodos.length - previewTodos.length;
 
@@ -2492,6 +2481,7 @@ function openDrawer(m) {
   activeMode = 'ministry';
   activeMinistryId = m.id;
   activeTodoId = null;
+  drawerShowAll = false; // 열 때마다 오늘 보기로 초기화
   const drawer = document.getElementById('detailDrawer');
   const overlay = document.getElementById('drawerOverlay');
   document.querySelector('.todo-add').style.display = '';
@@ -2825,10 +2815,28 @@ function renderDrawerTodos() {
   const m = getDrawerM();
   if (!m) return;
   const list = document.getElementById('drawerTodoList');
+  const todayStr = fmtYMD(new Date());
+
+  // 오늘/전체 주 토글 버튼
+  const toggleArea = document.getElementById('drawerDayToggle');
+  if (toggleArea) {
+    const btnStyle = (active) => `padding:3px 12px;border-radius:12px;border:1px solid var(--primary);font-size:0.78rem;font-weight:600;cursor:pointer;${active ? 'background:var(--primary);color:#fff' : 'background:none;color:var(--primary)'}`;
+    toggleArea.innerHTML = `
+      <button onclick="drawerShowAll=false;renderDrawerTodos();" style="${btnStyle(!drawerShowAll)}">오늘</button>
+      <button onclick="drawerShowAll=true;renderDrawerTodos();" style="${btnStyle(drawerShowAll)}">전체 주</button>
+    `;
+  }
+
+  // 오늘 필터 적용
+  let baseTodos = m.todos;
+  if (!drawerShowAll) {
+    baseTodos = baseTodos.filter(t => !t.date || t.date === todayStr);
+  }
+
   // 날짜별 그룹핑
   const groups = {};
   const noDate = [];
-  m.todos.forEach(t => {
+  baseTodos.forEach(t => {
     if (t.date) { if (!groups[t.date]) groups[t.date] = []; groups[t.date].push(t); }
     else noDate.push(t);
   });

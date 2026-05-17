@@ -1272,7 +1272,6 @@
           <input type="time" class="todo-add-time" id="drawerTodoTime" title="시간" />
         </div>
       </div>
-      <div id="drawerDayToggle" style="display:flex;gap:6px;margin:8px 0 4px;"></div>
       <ul class="todo-list" id="drawerTodoList"></ul>
       <div id="todoDetailExtra"></div>
     </div>
@@ -1669,7 +1668,6 @@ let selectedColor = COLORS[0];
 let filterStatus = 'all';
 let filterCategory = 'all';
 let selectedDay = null; // 대시보드는 항상 전체 주 표시
-let drawerShowAll = false; // drawer: false=오늘만, true=전체 주
 
 // ── Date helpers ──────────────────────────────────────────────────────────
 function getTuesdayOfWeek(date) {
@@ -1930,10 +1928,8 @@ function buildCard(m) {
   const urgentCount = m.todos.filter(t => !t.done && ['overdue','today'].includes(getDueStatus(t))).length;
   const cat = getAllCategories().find(c => c.key === (m.category||'other')) || CATEGORIES.find(c => c.key === 'other');
 
-  // 전체 주 todos 날짜·시간순 정렬
-  let filteredTodos = sortTodosByDateTime(m.todos);
-  const previewTodos = filteredTodos.slice(0, 5);
-  const hiddenCount = filteredTodos.length - previewTodos.length;
+  // 전체 주 todos 날짜·시간순 정렬 (전체 표시)
+  const filteredTodos = sortTodosByDateTime(m.todos);
 
 
   const card = document.createElement('div');
@@ -1965,10 +1961,7 @@ function buildCard(m) {
       <div class="status-row" style="margin-bottom:8px;">
         ${STATUS_LIST.map(s=>`<span class="status-chip ${s.key}${m.status===s.key?' selected':''}">${s.label}</span>`).join('')}
       </div>
-      ${previewTodos.length > 0 ? `
-        ${buildTodoListHtml(previewTodos)}
-        ${hiddenCount > 0 ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">+ ${hiddenCount}개 더 (클릭하여 열기)</div>` : ''}
-      ` : `<div style="font-size:0.8rem;color:var(--text-muted);padding:4px 0;">할 일이 없습니다. 클릭하여 추가하세요.</div>`}
+      ${filteredTodos.length > 0 ? buildTodoListHtml(filteredTodos) : `<div style="font-size:0.8rem;color:var(--text-muted);padding:4px 0;">할 일이 없습니다. 클릭하여 추가하세요.</div>`}
     </div>
   `;
 
@@ -2481,7 +2474,6 @@ function openDrawer(m) {
   activeMode = 'ministry';
   activeMinistryId = m.id;
   activeTodoId = null;
-  drawerShowAll = false; // 열 때마다 오늘 보기로 초기화
   const drawer = document.getElementById('detailDrawer');
   const overlay = document.getElementById('drawerOverlay');
   document.querySelector('.todo-add').style.display = '';
@@ -2817,21 +2809,8 @@ function renderDrawerTodos() {
   const list = document.getElementById('drawerTodoList');
   const todayStr = fmtYMD(new Date());
 
-  // 오늘/전체 주 토글 버튼
-  const toggleArea = document.getElementById('drawerDayToggle');
-  if (toggleArea) {
-    const btnStyle = (active) => `padding:3px 12px;border-radius:12px;border:1px solid var(--primary);font-size:0.78rem;font-weight:600;cursor:pointer;${active ? 'background:var(--primary);color:#fff' : 'background:none;color:var(--primary)'}`;
-    toggleArea.innerHTML = `
-      <button onclick="drawerShowAll=false;renderDrawerTodos();" style="${btnStyle(!drawerShowAll)}">오늘</button>
-      <button onclick="drawerShowAll=true;renderDrawerTodos();" style="${btnStyle(drawerShowAll)}">전체 주</button>
-    `;
-  }
-
-  // 오늘 필터 적용
-  let baseTodos = m.todos;
-  if (!drawerShowAll) {
-    baseTodos = baseTodos.filter(t => !t.date || t.date === todayStr);
-  }
+  // 오늘 날짜 할 일만 표시 (날짜 없는 항목 포함)
+  const baseTodos = m.todos.filter(t => !t.date || t.date === todayStr);
 
   // 날짜별 그룹핑
   const groups = {};

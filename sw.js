@@ -1,4 +1,4 @@
-const CACHE = 'gmc-v4';
+const CACHE = 'gmc-v5';
 const STATIC_ASSETS = [
   '/gmc-ministry/icons/icon-192.png',
   '/gmc-ministry/icons/icon-512.png',

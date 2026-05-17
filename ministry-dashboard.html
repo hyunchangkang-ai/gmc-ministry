@@ -3152,13 +3152,20 @@ document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 
 // ── Init ──────────────────────────────────────────────────────────────────
-cleanupDuplicateTodos();
-removeCalendarMinistries('seonghyeon.bak@gmcusa.org');
-mergeDuplicateCalMinistries();
-deduplicateMinistries();
-importGCalEvents();
-renderCards();
-checkDueNotifications();
+// 각 단계 try-catch로 감싸서 한 함수가 실패해도 렌더링은 보장
+try { cleanupDuplicateTodos(); } catch(e) { console.error('cleanupDuplicateTodos:', e); }
+try { removeCalendarMinistries('seonghyeon.bak@gmcusa.org'); } catch(e) { console.error('removeCalendarMinistries:', e); }
+try { mergeDuplicateCalMinistries(); } catch(e) { console.error('mergeDuplicateCalMinistries:', e); }
+try { deduplicateMinistries(); } catch(e) { console.error('deduplicateMinistries:', e); }
+try { importGCalEvents(); } catch(e) { console.error('importGCalEvents:', e); }
+try { renderCards(); } catch(e) { console.error('renderCards:', e); }
+try { checkDueNotifications(); } catch(e) { console.error('checkDueNotifications:', e); }
+// DOM 준비 후 한 번 더 보장 렌더링 (race condition 방지)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { try { renderCards(); } catch(e) {} });
+} else {
+  setTimeout(() => { try { renderCards(); } catch(e) {} }, 0);
+}
 // 시작 시 localStorage에만 저장 (빈 데이터로 Apps Script 덮어쓰기 방지)
 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 

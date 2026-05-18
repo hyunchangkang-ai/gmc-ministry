@@ -1870,6 +1870,7 @@ function ensureRecurringTodos(m, weekDates) {
   weekDates.forEach(d => {
     if (!activeDays.includes(d.getDay())) return;
     const dateStr = fmtYMD(d);
+    if (m.skippedDates && m.skippedDates.includes(dateStr)) return;
     const exists = m.todos.some(t =>
       t.date === dateStr &&
       t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === m.name.trim()
@@ -2732,6 +2733,12 @@ function openTodoDrawer(ministryId, todoId) {
   // 편집 이벤트 바인딩
   sr.querySelector('#todoEditDate').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
+    const m2 = getDrawerM();
+    if (t.isRecurring && t.date && m2) {
+      m2.skippedDates = m2.skippedDates || [];
+      if (!m2.skippedDates.includes(t.date)) m2.skippedDates.push(t.date);
+      t.isRecurring = false;
+    }
     t.date = e.target.value || null; saveData(); renderCards();
   };
   sr.querySelector('#todoEditTime').onchange = e => {
@@ -2991,6 +2998,12 @@ function renderDrawerTodos() {
       todo.dueDate = e.target.value || null; saveData(); renderDrawerTodos(); renderCards();
     }
     if (e.target.matches('[data-event-date]')) {
+      const mRef = getDrawerM();
+      if (todo.isRecurring && todo.date && mRef) {
+        mRef.skippedDates = mRef.skippedDates || [];
+        if (!mRef.skippedDates.includes(todo.date)) mRef.skippedDates.push(todo.date);
+        todo.isRecurring = false;
+      }
       todo.date = e.target.value || '';
       // 날짜 변경 시 목록 재정렬
       const m = getDrawerM();

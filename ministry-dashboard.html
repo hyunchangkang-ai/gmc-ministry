@@ -1658,6 +1658,25 @@ function saveCustomCategories(cats) {
 // ── State ──────────────────────────────────────────────────────────────────
 let weekOffset = 0;   // 0 = current week (Tue~Mon)
 let data = loadData();
+data.deletedIds = data.deletedIds || {};
+
+// 30일이 지난 삭제 정보 정리 (Garbage Collection)
+try {
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  let gcCount = 0;
+  Object.keys(data.deletedIds).forEach(id => {
+    if (data.deletedIds[id] < thirtyDaysAgo) {
+      delete data.deletedIds[id];
+      gcCount++;
+    }
+  });
+  if (gcCount > 0) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+} catch(e) {
+  console.error("deletedIds GC error:", e);
+}
+
 let editingMinistryId = null;
 let selectedColor = COLORS[0];
 let filterStatus = 'all';
@@ -1777,8 +1796,11 @@ function deduplicateMinistries() {
 
 // Apps Script 저장용: 캘린더 자동생성 항목 제외 (셀 용량 50,000자 초과 방지)
 function dataForSync() {
-  const d = {};
+  const d = {
+    deletedIds: data.deletedIds || {}
+  };
   Object.keys(data).forEach(wk => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(wk)) return;
     const wkData = data[wk];
     if (!wkData || !wkData.ministries) return;
     const mins = [];
@@ -1860,7 +1882,7 @@ function ensureRecurringTodos(m, weekDates) {
     );
     if (!exists) {
       m.todos.push({ id: uid(), text: timeLabel + m.name, date: dateStr,
-        time: timeStr, done: false, progress: '', needs: '', isRecurring: true });
+        time: timeStr, done: false, progress: '', needs: '', isRecurring: true, updatedAt: Date.now() });
       changed = true;
     }
   });
@@ -2109,7 +2131,9 @@ function attachCardEvents(card, m) {
   // Card actions
   card.querySelector('[data-action="pin"]').addEventListener('click', e => {
     e.stopPropagation();
-    getM().pinned = !getM().pinned;
+    const cur = getM();
+    cur.pinned = !cur.pinned;
+    cur.updatedAt = Date.now();
     saveData(); renderCards();
   });
   card.querySelector('[data-action="edit"]').addEventListener('click', e => {
@@ -2120,6 +2144,9 @@ function attachCardEvents(card, m) {
     e.stopPropagation();
     showConfirm(`"${getM().name}" 사역을 삭제하시겠습니까?`, () => {
       wk.ministries = wk.ministries.filter(x=>x.id!==m.id);
+      data.deletedIds = data.deletedIds || {};
+      data.deletedIds[m.id] = Date.now();
+      (m.todos || []).forEach(t => { data.deletedIds[t.id] = Date.now(); });
       saveData(); renderCards();
     });
   });
@@ -2130,7 +2157,11 @@ function attachCardEvents(card, m) {
       e.stopPropagation();
       const todoId = cb.dataset.todoId;
       const todo = getM().todos.find(t => t.id === todoId);
-      if (todo) { todo.done = cb.checked; saveData(); renderCards(); }
+      if (todo) {
+        todo.done = cb.checked;
+        todo.updatedAt = Date.now();
+        saveData(); renderCards();
+      }
     });
   });
 }
@@ -2294,6 +2325,7 @@ document.getElementById('modalSave').addEventListener('click', () => {
     m.category = document.getElementById('ministryCategory').value || 'other';
     m.repeatConfig = repeatConfig;
     m.oneOffDate = oneOffDate;
+    m.updatedAt = Date.now();
     // Re-generate recurring todos for current week
     if (repeatType !== 'none') ensureRecurringTodos(m, getWeekDates(weekOffset));
   } else {
@@ -2306,12 +2338,13 @@ document.getElementById('modalSave').addEventListener('click', () => {
       todos: [],
       progress: '', needs: '', pinned: false,
       repeatConfig, oneOffDate,
+      updatedAt: Date.now(),
     };
     // One-off todo with date/time
     if (repeatType === 'none' && (oneOffDate || repeatTime)) {
       const tl = repeatTime ? `[${repeatTime}] ` : '';
       newM.todos.push({ id: uid(), text: tl + name, date: oneOffDate || null,
-        time: repeatTime, done: false, progress: '', needs: '' });
+        time: repeatTime, done: false, progress: '', needs: '', updatedAt: Date.now() });
     }
     wk.ministries.push(newM);
     // Generate recurring todos for current week
@@ -2532,6 +2565,7 @@ function importGCalEvents() {
         done: false,
         progress: '',
         needs: '',
+        updatedAt: Date.now(),
       });
       changed = true;
     }
@@ -2673,6 +2707,7 @@ function renderDateTodos() {
     // Checkbox
     li.querySelector('[data-date-todo-check]').onchange = e => {
       todo.done = e.target.checked;
+      todo.updatedAt = Date.now();
       saveData();
       renderCards();
       renderDateTodos();
@@ -2684,6 +2719,7 @@ function renderDateTodos() {
       if (!todo.gcalEventId) {
         const timePrefix = todo.time ? `[${todo.time}] ` : '';
         todo.text = timePrefix + e.target.value;
+        todo.updatedAt = Date.now();
         saveData();
         renderCards();
         autoResize.call(e.target);
@@ -2693,6 +2729,7 @@ function renderDateTodos() {
     // Date
     li.querySelector('[data-date-todo-date]').onchange = e => {
       todo.date = e.target.value || '';
+      todo.updatedAt = Date.now();
       // Re-sort
       m.todos.sort((a, b) => {
         const da = a.date || '9999-99-99', db = b.date || '9999-99-99';
@@ -2710,6 +2747,7 @@ function renderDateTodos() {
       todo.time = e.target.value || '';
       todo.text = todo.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
       if (todo.time) todo.text = `[${todo.time}] ` + todo.text;
+      todo.updatedAt = Date.now();
       // Re-sort
       m.todos.sort((a, b) => {
         const da = a.date || '9999-99-99', db = b.date || '9999-99-99';
@@ -2725,6 +2763,7 @@ function renderDateTodos() {
     // Due Date
     li.querySelector('[data-date-todo-due]').onchange = e => {
       todo.dueDate = e.target.value || null;
+      todo.updatedAt = Date.now();
       saveData();
       renderCards();
       renderDateTodos();
@@ -2734,6 +2773,8 @@ function renderDateTodos() {
     li.querySelector('[data-date-todo-del]').onclick = () => {
       showConfirm(`"${todo.text.replace(/^\[\d{2}:\d{2}\]\s*/, '')}" 할 일을 삭제하시겠습니까?`, () => {
         m.todos = m.todos.filter(x => x.id !== todo.id);
+        data.deletedIds = data.deletedIds || {};
+        data.deletedIds[todo.id] = Date.now();
         saveData();
         renderCards();
         renderDateTodos();
@@ -2771,6 +2812,7 @@ function openDrawer(m) {
     chip.addEventListener('click', () => {
       const cur = getDrawerM();
       cur.status = cur.status === chip.dataset.status ? '' : chip.dataset.status;
+      cur.updatedAt = Date.now();
       saveData();
       sr.querySelectorAll('[data-status]').forEach(c => c.classList.toggle('selected', c.dataset.status === cur.status));
       renderCards();
@@ -2778,13 +2820,29 @@ function openDrawer(m) {
   });
 
   // Title edit
-  document.getElementById('drawerTitle').onchange = e => { getDrawerM().name = e.target.value; saveData(); renderCards(); };
+  document.getElementById('drawerTitle').onchange = e => {
+    const cur = getDrawerM();
+    cur.name = e.target.value;
+    cur.updatedAt = Date.now();
+    saveData();
+    renderCards();
+  };
 
   // Textareas
   document.getElementById('drawerProgress').value = m.progress || '';
   document.getElementById('drawerNeeds').value = m.needs || '';
-  document.getElementById('drawerProgress').oninput = e => { getDrawerM().progress = e.target.value; saveData(); };
-  document.getElementById('drawerNeeds').oninput = e => { getDrawerM().needs = e.target.value; saveData(); };
+  document.getElementById('drawerProgress').oninput = e => {
+    const cur = getDrawerM();
+    cur.progress = e.target.value;
+    cur.updatedAt = Date.now();
+    saveData();
+  };
+  document.getElementById('drawerNeeds').oninput = e => {
+    const cur = getDrawerM();
+    cur.needs = e.target.value;
+    cur.updatedAt = Date.now();
+    saveData();
+  };
 
   // 사역 모드: 탭 모두 복원 + 인라인 영역 초기화
   drawer.querySelectorAll('.drawer-tab').forEach(t => { t.style.display = ''; });
@@ -2832,7 +2890,8 @@ function openDrawer(m) {
       text: timeLabel + text,
       date: dateVal || '',
       time: timeVal || '',
-      done: false, progress: '', needs: ''
+      done: false, progress: '', needs: '',
+      updatedAt: Date.now()
     });
     sortTodos(m.todos);
     inp.value = '';
@@ -2888,6 +2947,7 @@ function openTodoDrawer(ministryId, todoId) {
       const plainText = e.target.value;
       const timePrefix = todo.time ? `[${todo.time}] ` : '';
       todo.text = timePrefix + plainText;
+      todo.updatedAt = Date.now();
       
       const inlineTextEl = document.getElementById('singleTodoText');
       if (inlineTextEl) {
@@ -2924,7 +2984,7 @@ function openTodoDrawer(ministryId, todoId) {
   // 편집 이벤트 바인딩
   sr.querySelector('#todoEditDate').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
-    t.date = e.target.value || null; saveData(); renderCards();
+    t.date = e.target.value || null; t.updatedAt = Date.now(); saveData(); renderCards();
   };
   sr.querySelector('#todoEditTime').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
@@ -2932,12 +2992,14 @@ function openTodoDrawer(ministryId, todoId) {
     // 텍스트 접두사도 동기화
     t.text = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
     if (t.time) t.text = `[${t.time}] ` + t.text;
+    t.updatedAt = Date.now();
     saveData(); renderCards(); renderDrawerTodosSingle();
     document.getElementById('drawerTitle').value = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
   };
   sr.querySelector('#todoEditCategory').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
     t.category = e.target.value;
+    t.updatedAt = Date.now();
     const cat = CATEGORIES.find(c => c.key === t.category) || CATEGORIES.find(c => c.key === 'other');
     badge.textContent = cat.label; badge.style.background = cat.color;
     saveData(); renderCards();
@@ -2970,10 +3032,10 @@ function openTodoDrawer(ministryId, todoId) {
   document.getElementById('drawerProgress').value = todo.progress || '';
   document.getElementById('drawerNeeds').value = todo.needs || '';
   document.getElementById('drawerProgress').oninput = e => {
-    const t = getDrawerTodo(); if (t) { t.progress = e.target.value; saveData(); }
+    const t = getDrawerTodo(); if (t) { t.progress = e.target.value; t.updatedAt = Date.now(); saveData(); }
   };
   document.getElementById('drawerNeeds').oninput = e => {
-    const t = getDrawerTodo(); if (t) { t.needs = e.target.value; saveData(); }
+    const t = getDrawerTodo(); if (t) { t.needs = e.target.value; t.updatedAt = Date.now(); saveData(); }
   };
 
   overlay.classList.remove('hidden');
@@ -3017,6 +3079,7 @@ function renderDrawerTodosSingle() {
 
   checkEl.onchange = e => {
     todo.done = e.target.checked;
+    todo.updatedAt = Date.now();
     if (todo.done) textEl.classList.add('done');
     else textEl.classList.remove('done');
     saveData();
@@ -3030,6 +3093,7 @@ function renderDrawerTodosSingle() {
       const plainText = e.target.value;
       const timePrefix = todo.time ? `[${todo.time}] ` : '';
       todo.text = timePrefix + plainText;
+      todo.updatedAt = Date.now();
       
       // Keep #drawerTitle header input in sync!
       document.getElementById('drawerTitle').value = plainText;
@@ -3042,6 +3106,7 @@ function renderDrawerTodosSingle() {
 
   dueEl.onchange = e => {
     todo.dueDate = e.target.value || null;
+    todo.updatedAt = Date.now();
     saveData();
     renderCards();
     renderDrawerTodosSingle();
@@ -3053,6 +3118,8 @@ function renderDrawerTodosSingle() {
         const m = getDrawerM();
         if (m) {
           m.todos = m.todos.filter(x => x.id !== todo.id);
+          data.deletedIds = data.deletedIds || {};
+          data.deletedIds[todo.id] = Date.now();
           saveData();
           renderCards();
           closeDrawer();
@@ -3074,10 +3141,10 @@ function renderDrawerTodosSingle() {
     </div>
   `;
   extra.querySelector('#inlineProgress').oninput = e => {
-    const t = getDrawerTodo(); if (t) { t.progress = e.target.value; saveData(); }
+    const t = getDrawerTodo(); if (t) { t.progress = e.target.value; t.updatedAt = Date.now(); saveData(); }
   };
   extra.querySelector('#inlineNeeds').oninput = e => {
-    const t = getDrawerTodo(); if (t) { t.needs = e.target.value; saveData(); }
+    const t = getDrawerTodo(); if (t) { t.needs = e.target.value; t.updatedAt = Date.now(); saveData(); }
   };
 
   // Annual link / unlink buttons
@@ -3087,6 +3154,7 @@ function renderDrawerTodosSingle() {
   if (unlinkBtn) unlinkBtn.onclick = () => {
     const t = getDrawerTodo(); if (!t) return;
     delete t.annualEventId; delete t.annualEventTitle;
+    t.updatedAt = Date.now();
     saveData(); renderCards(); renderDrawerTodosSingle();
   };
 }
@@ -3124,6 +3192,7 @@ function renderAnnualLinkList(query) {
       const t = getDrawerTodo(); if (!t) return;
       t.annualEventId = li.dataset.annualId;
       t.annualEventTitle = li.dataset.annualTitle;
+      t.updatedAt = Date.now();
       saveData(); renderCards(); renderDrawerTodosSingle();
       closeAnnualLinkModal();
       showToast(`✅ "${t.annualEventTitle}" 에 연결되었습니다.`);
@@ -3220,13 +3289,14 @@ function renderDrawerTodos() {
     const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
     if (!todo) return;
     if (e.target.matches('[data-todo-check]')) {
-      todo.done = e.target.checked; saveData(); renderDrawerTodos(); renderCards();
+      todo.done = e.target.checked; todo.updatedAt = Date.now(); saveData(); renderDrawerTodos(); renderCards();
     }
     if (e.target.matches('[data-due-input]')) {
-      todo.dueDate = e.target.value || null; saveData(); renderDrawerTodos(); renderCards();
+      todo.dueDate = e.target.value || null; todo.updatedAt = Date.now(); saveData(); renderDrawerTodos(); renderCards();
     }
     if (e.target.matches('[data-event-date]')) {
       todo.date = e.target.value || '';
+      todo.updatedAt = Date.now();
       // 날짜 변경 시 목록 재정렬
       const m = getDrawerM();
       m.todos.sort((a, b) => {
@@ -3244,6 +3314,8 @@ function renderDrawerTodos() {
       const li = e.target.closest('[data-todo-id]');
       const cur = getDrawerM();
       cur.todos = cur.todos.filter(t => t.id !== li.dataset.todoId);
+      data.deletedIds = data.deletedIds || {};
+      data.deletedIds[li.dataset.todoId] = Date.now();
       saveData(); renderDrawerTodos(); renderCards();
     }
   }, sig);
@@ -3252,7 +3324,7 @@ function renderDrawerTodos() {
     if (e.target.matches('[data-todo-text]')) {
       const li = e.target.closest('[data-todo-id]');
       const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
-      if (todo) { todo.text = e.target.value; saveData(); autoResize.call(e.target); }
+      if (todo) { todo.text = e.target.value; todo.updatedAt = Date.now(); saveData(); autoResize.call(e.target); }
     }
   }, sig);
 
@@ -3272,6 +3344,8 @@ function renderDrawerTodos() {
     const [moved] = cur.todos.splice(fromIdx, 1);
     const insertIdx = cur.todos.findIndex(t => t.id === toId);
     cur.todos.splice(position === 'top' ? insertIdx : insertIdx + 1, 0, moved);
+    cur.updatedAt = Date.now();
+    moved.updatedAt = Date.now();
     saveData(); renderDrawerTodos(); renderCards();
   };
 
@@ -3422,57 +3496,151 @@ localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 // 시작 시 Apps Script 데이터를 가져와 병합
 // - localStorage 비어있으면 전체 복원
 // - 데이터 있으면 할 일 단위로 병합 (다른 기기에서 추가된 항목 반영)
-fetch(APPS_SCRIPT_URL)
-  .then(r => r.json())
-  .then(fresh => {
-    if (!fresh || typeof fresh !== 'object') return;
-    // 유효한 주차 키(YYYY-MM-DD)가 하나도 없으면 무시 (오염된 데이터 방지)
-    const freshWeekKeys = Object.keys(fresh).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
-    if (freshWeekKeys.length === 0) return;
-    const localWeekKeys = Object.keys(data).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
-    const localEmpty = localWeekKeys.length === 0;
-    let changed = false;
-    if (localEmpty) {
-      freshWeekKeys.forEach(k => { data[k] = fresh[k]; });
-      changed = true;
-      showToast('☁️ 데이터 복원 완료');
+function mergeIncomingData(fresh) {
+  if (!fresh || typeof fresh !== 'object') return false;
+  const freshWeekKeys = Object.keys(fresh).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+  if (freshWeekKeys.length === 0 && (!fresh.deletedIds || Object.keys(fresh.deletedIds).length === 0)) return false;
+
+  let changed = false;
+
+  // 1. Merge deletedIds
+  if (fresh.deletedIds && typeof fresh.deletedIds === 'object') {
+    data.deletedIds = data.deletedIds || {};
+    Object.keys(fresh.deletedIds).forEach(id => {
+      const serverTime = fresh.deletedIds[id];
+      const localTime = data.deletedIds[id] || 0;
+      if (serverTime > localTime) {
+        data.deletedIds[id] = serverTime;
+        changed = true;
+      }
+    });
+  }
+
+  // 2. Filter out deleted ministries and todos from local data
+  Object.keys(data).forEach(wk => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(wk)) return;
+    const wkData = data[wk];
+    if (!wkData || !wkData.ministries) return;
+
+    const originalLength = wkData.ministries.length;
+    wkData.ministries = wkData.ministries.filter(m => {
+      if (data.deletedIds[m.id]) return false;
+      const origTodoLength = (m.todos || []).length;
+      m.todos = (m.todos || []).filter(t => !data.deletedIds[t.id]);
+      if (m.todos.length !== origTodoLength) changed = true;
+      return true;
+    });
+    if (wkData.ministries.length !== originalLength) changed = true;
+  });
+
+  // 3. Merge week keys
+  const localWeekKeys = Object.keys(data).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+  const localEmpty = localWeekKeys.length === 0;
+
+  if (localEmpty && freshWeekKeys.length > 0) {
+    freshWeekKeys.forEach(wk => {
+      const freshMins = (fresh[wk].ministries || []).filter(m => !data.deletedIds[m.id]);
+      freshMins.forEach(m => {
+        m.todos = (m.todos || []).filter(t => !data.deletedIds[t.id]);
+      });
+      data[wk] = Object.assign({}, fresh[wk], { ministries: freshMins });
+    });
+    return true;
+  }
+
+  freshWeekKeys.forEach(wk => {
+    if (!data[wk]) {
+      const freshMins = (fresh[wk].ministries || []).filter(m => !data.deletedIds[m.id]);
+      freshMins.forEach(m => {
+        m.todos = (m.todos || []).filter(t => !data.deletedIds[t.id]);
+      });
+      if (freshMins.length > 0) {
+        data[wk] = Object.assign({}, fresh[wk], { ministries: freshMins });
+        changed = true;
+      }
     } else {
-      freshWeekKeys.forEach(wk => {
-        if (!data[wk]) {
-          // 없는 주차는 통째로 추가
-          data[wk] = fresh[wk];
+      const localWk = data[wk];
+      const freshMins = (fresh[wk].ministries || []);
+
+      freshMins.forEach(freshM => {
+        if (data.deletedIds[freshM.id]) return;
+
+        const localM = localWk.ministries.find(m =>
+          m.id === freshM.id ||
+          (freshM.gcalId && m.gcalId === freshM.gcalId)
+        );
+
+        if (!localM) {
+          const filteredM = Object.assign({}, freshM, {
+            todos: (freshM.todos || []).filter(t => !data.deletedIds[t.id])
+          });
+          localWk.ministries.push(filteredM);
           changed = true;
         } else {
-          // 있는 주차는 ministry/todo 단위로 병합
-          const freshMins = (fresh[wk].ministries || []);
-          freshMins.forEach(freshM => {
-            // id 또는 gcalId로 기존 사역 찾기 (기기마다 uid 다를 수 있음)
-            const localM = data[wk].ministries.find(m =>
-              m.id === freshM.id ||
-              (freshM.gcalId && m.gcalId === freshM.gcalId)
+          const freshMUpdatedAt = freshM.updatedAt || 0;
+          const localMUpdatedAt = localM.updatedAt || 0;
+
+          if (freshMUpdatedAt > localMUpdatedAt) {
+            localM.name = freshM.name;
+            localM.owner = freshM.owner || '';
+            localM.color = freshM.color || '#1a3a5c';
+            localM.status = freshM.status || 's-planning';
+            localM.progress = freshM.progress || '';
+            localM.needs = freshM.needs || '';
+            localM.pinned = !!freshM.pinned;
+            localM.repeatConfig = freshM.repeatConfig || localM.repeatConfig;
+            localM.updatedAt = freshMUpdatedAt;
+            changed = true;
+          }
+
+          (freshM.todos || []).forEach(freshT => {
+            if (data.deletedIds[freshT.id]) return;
+
+            const dup = localM.todos.find(t =>
+              t.id === freshT.id ||
+              gcalIdMatch(t.gcalEventId, freshT.gcalEventId)
             );
-            if (!localM) {
-              // 없는 사역 추가
-              data[wk].ministries.push(freshM);
+
+            if (!dup) {
+              localM.todos.push(freshT);
               changed = true;
             } else {
-              // 있는 사역: 없는 할 일만 추가
-              (freshM.todos || []).forEach(freshT => {
-                const dup = localM.todos.find(t =>
-                  t.id === freshT.id ||
-                  gcalIdMatch(t.gcalEventId, freshT.gcalEventId)
-                );
-                if (!dup) { localM.todos.push(freshT); changed = true; }
-              });
+              const freshTUpdatedAt = freshT.updatedAt || 0;
+              const localTUpdatedAt = dup.updatedAt || 0;
+
+              if (freshTUpdatedAt > localTUpdatedAt) {
+                dup.done = freshT.done;
+                dup.text = freshT.text;
+                dup.date = freshT.date;
+                dup.time = freshT.time;
+                dup.dueDate = freshT.dueDate || null;
+                dup.progress = freshT.progress || '';
+                dup.needs = freshT.needs || '';
+                dup.category = freshT.category || '';
+                dup.annualEventId = freshT.annualEventId || null;
+                dup.annualEventTitle = freshT.annualEventTitle || null;
+                dup.updatedAt = freshTUpdatedAt;
+                changed = true;
+              }
             }
           });
         }
       });
     }
+  });
+
+  return changed;
+}
+
+fetch(APPS_SCRIPT_URL)
+  .then(r => r.json())
+  .then(fresh => {
+    const changed = mergeIncomingData(fresh);
     if (changed) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       importGCalEvents();
       renderCards();
+      showToast('☁️ 스마트 동기화(pull) 완료');
     }
   })
   .catch(() => {});
@@ -3504,39 +3672,14 @@ async function syncSheets() {
     clearTimeout(tid);
     if (r.ok) {
       const fresh = await r.json();
-      const freshWeeks = Object.keys(fresh).filter(k => k.match(/^\d{4}-\d{2}-\d{2}$/));
-      let addedTodos = 0, addedMins = 0;
-      if (fresh && freshWeeks.length > 0) {
-        freshWeeks.forEach(wk => {
-          if (!data[wk]) {
-            data[wk] = fresh[wk]; addedMins++;
-          } else {
-            (fresh[wk].ministries || []).forEach(freshM => {
-              const localM = data[wk].ministries.find(m =>
-                m.id === freshM.id ||
-                (freshM.gcalId && m.gcalId === freshM.gcalId)
-              );
-              if (!localM) {
-                data[wk].ministries.push(freshM); addedMins++;
-              } else {
-                (freshM.todos || []).forEach(freshT => {
-                  const dup = localM.todos.find(t =>
-                    t.id === freshT.id ||
-                    gcalIdMatch(t.gcalEventId, freshT.gcalEventId)
-                  );
-                  if (!dup) { localM.todos.push(freshT); addedTodos++; }
-                });
-              }
-            });
-          }
-        });
+      const changed = mergeIncomingData(fresh);
+      if (changed) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         renderCards();
         if (activeMode === 'ministry') renderDrawerTodos();
         else if (activeMode === 'date') renderDateTodos();
         else if (activeMode === 'todo') renderDrawerTodosSingle();
       }
-      showToast(`☁️ 서버에서 할 일 ${addedTodos}개·사역 ${addedMins}개 추가됨`);
     }
     // 2) 병합된 데이터를 Apps Script에 push (캘린더 자동생성 제외)
     await fetch(APPS_SCRIPT_URL, {

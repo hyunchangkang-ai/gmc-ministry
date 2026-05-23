@@ -1831,6 +1831,8 @@ function saveData() {
     fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
+      credentials: 'omit',
+      cache: 'no-store',
       headers: { 'Content-Type': 'text/plain' },
       body: payload
     }).catch(() => {});
@@ -3633,7 +3635,7 @@ function mergeIncomingData(fresh) {
   return changed;
 }
 
-fetch(APPS_SCRIPT_URL)
+fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-store' })
   .then(r => r.json())
   .then(fresh => {
     const changed = mergeIncomingData(fresh);
@@ -3647,7 +3649,7 @@ fetch(APPS_SCRIPT_URL)
   .catch(() => {});
 
 // 시작 시 Google Calendar 이벤트 자동 fetch (페이지 열 때마다 최신화)
-fetch(APPS_SCRIPT_URL + '?action=gcal_events')
+fetch(APPS_SCRIPT_URL + '?action=gcal_events&t=' + Date.now(), { credentials: 'omit', cache: 'no-store' })
   .then(r => r.ok ? r.json() : null)
   .then(events => {
     if (Array.isArray(events) && events.length > 0) {
@@ -3669,7 +3671,7 @@ async function syncSheets() {
     // 1) Apps Script에서 최신 데이터 pull 먼저
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 15000);
-    const r = await fetch(APPS_SCRIPT_URL, { signal: ctrl.signal });
+    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { signal: ctrl.signal, credentials: 'omit', cache: 'no-store' });
     clearTimeout(tid);
     if (r.ok) {
       const fresh = await r.json();
@@ -3685,6 +3687,7 @@ async function syncSheets() {
     // 2) 병합된 데이터를 Apps Script에 push (캘린더 자동생성 제외)
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
+      credentials: 'omit', cache: 'no-store',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(dataForSync())
     });
@@ -3692,7 +3695,7 @@ async function syncSheets() {
     try {
       const calCtrl = new AbortController();
       const calTid = setTimeout(() => calCtrl.abort(), 15000);
-      const calR = await fetch(APPS_SCRIPT_URL + '?action=gcal_events', { signal: calCtrl.signal });
+      const calR = await fetch(APPS_SCRIPT_URL + '?action=gcal_events&t=' + Date.now(), { signal: calCtrl.signal, credentials: 'omit', cache: 'no-store' });
       clearTimeout(calTid);
       if (calR.ok) {
         const freshEvents = await calR.json();

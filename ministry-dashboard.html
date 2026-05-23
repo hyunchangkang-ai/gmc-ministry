@@ -3636,7 +3636,10 @@ function mergeIncomingData(fresh) {
     wkData.ministries = wkData.ministries.filter(m => {
       if (data.deletedIds[m.id]) return false;
       const origTodoLength = (m.todos || []).length;
-      m.todos = (m.todos || []).filter(t => !data.deletedIds[t.id]);
+      m.todos = (m.todos || []).filter(t => 
+        !data.deletedIds[t.id] && 
+        !(t.gcalEventId && data.deletedIds['gcalev:' + gcalBaseId(t.gcalEventId)])
+      );
       if (m.todos.length !== origTodoLength) changed = true;
       return true;
     });

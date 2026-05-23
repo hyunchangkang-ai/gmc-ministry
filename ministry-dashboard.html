@@ -2159,7 +2159,10 @@ function attachCardEvents(card, m) {
       wk.ministries = wk.ministries.filter(x=>x.id!==m.id);
       data.deletedIds = data.deletedIds || {};
       data.deletedIds[m.id] = Date.now();
-      (m.todos || []).forEach(t => { data.deletedIds[t.id] = Date.now(); });
+      (m.todos || []).forEach(t => {
+        data.deletedIds[t.id] = Date.now();
+        if (t.gcalEventId) data.deletedIds['gcalev:' + gcalBaseId(t.gcalEventId)] = Date.now();
+      });
       saveData(); renderCards();
     });
   });
@@ -2524,8 +2527,12 @@ function importGCalEvents() {
   if (!window.GCAL_EVENTS || !window.GCAL_EVENTS.length) return;
 
   let changed = false;
+  data.deletedIds = data.deletedIds || {};
 
   window.GCAL_EVENTS.forEach(ev => {
+    // 사용자가 삭제한 캘린더 이벤트는 다시 import하지 않음
+    if (data.deletedIds['gcalev:' + gcalBaseId(ev.id)]) return;
+
     const evDate = new Date(ev.date + 'T00:00:00');
     const tue = getTuesdayOfWeek(evDate);
     const key = fmtYMD(tue);
@@ -2788,6 +2795,7 @@ function renderDateTodos() {
         m.todos = m.todos.filter(x => x.id !== todo.id);
         data.deletedIds = data.deletedIds || {};
         data.deletedIds[todo.id] = Date.now();
+        if (todo.gcalEventId) data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
         saveData();
         renderCards();
         renderDateTodos();
@@ -3133,6 +3141,7 @@ function renderDrawerTodosSingle() {
           m.todos = m.todos.filter(x => x.id !== todo.id);
           data.deletedIds = data.deletedIds || {};
           data.deletedIds[todo.id] = Date.now();
+          if (todo.gcalEventId) data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
           saveData();
           renderCards();
           closeDrawer();
@@ -3326,9 +3335,13 @@ function renderDrawerTodos() {
     if (e.target.matches('[data-todo-del]')) {
       const li = e.target.closest('[data-todo-id]');
       const cur = getDrawerM();
+      const deletedTodo = cur.todos.find(t => t.id === li.dataset.todoId);
       cur.todos = cur.todos.filter(t => t.id !== li.dataset.todoId);
       data.deletedIds = data.deletedIds || {};
       data.deletedIds[li.dataset.todoId] = Date.now();
+      if (deletedTodo && deletedTodo.gcalEventId) {
+        data.deletedIds['gcalev:' + gcalBaseId(deletedTodo.gcalEventId)] = Date.now();
+      }
       saveData(); renderDrawerTodos(); renderCards();
     }
   }, sig);
@@ -3608,6 +3621,8 @@ function mergeIncomingData(fresh) {
 
           (freshM.todos || []).forEach(freshT => {
             if (data.deletedIds[freshT.id]) return;
+            // 캘린더 이벤트 단위로 삭제된 항목도 막기
+            if (freshT.gcalEventId && data.deletedIds['gcalev:' + gcalBaseId(freshT.gcalEventId)]) return;
 
             const dup = localM.todos.find(t =>
               t.id === freshT.id ||

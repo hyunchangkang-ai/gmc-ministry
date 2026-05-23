@@ -1607,6 +1607,62 @@ const CATEGORIES = [
 const STORAGE_KEY = 'gmc_ministry_v2';
 const CUSTOM_CAT_KEY = 'gmc_custom_categories_v1';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtEkIxLFi3Zw8B81xXJ2k6ARGmid4_aNPjmPEm5dVswZnerKw9eI67UdqbWKjxVOlnVw/exec';
+const WRITABLE_CALENDAR_ID = 'hyunchang.kang@gmcusa.org';
+
+// ── 캘린더 양방향 동기화 헬퍼 (내 스케줄만) ────────────────────────────────
+// no-cors 모드라 response를 읽을 수 없으므로 cors 모드 사용 (Apps Script는 익명 액세스)
+async function gcalCreateEvent({ title, date, time }) {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=gcal_create&t=' + Date.now(), {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ calendarId: WRITABLE_CALENDAR_ID, title, date, time: time || '' })
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json && json.ok && json.eventId) return json.eventId;
+    return null;
+  } catch(e) { return null; }
+}
+
+async function gcalUpdateEvent({ eventId, title, date, time }) {
+  try {
+    await fetch(APPS_SCRIPT_URL + '?action=gcal_update&t=' + Date.now(), {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ calendarId: WRITABLE_CALENDAR_ID, eventId, title, date, time: time || '' })
+    });
+  } catch(e) {}
+}
+
+// 사역이 "내 스케줄" 캘린더 사역인지 판별
+function isWritableCalMinistry(m) {
+  return m && m.gcalId === WRITABLE_CALENDAR_ID;
+}
+
+// todo 변경 시 "내 스케줄" 캘린더에 반영 (디바운스됨)
+const _gcalUpdateTimers = {};
+function scheduleGcalUpdate(m, todo) {
+  if (!isWritableCalMinistry(m)) return;
+  if (!todo.gcalEventId) return;
+  if (!todo.date) return;
+  const key = todo.id;
+  if (_gcalUpdateTimers[key]) clearTimeout(_gcalUpdateTimers[key]);
+  _gcalUpdateTimers[key] = setTimeout(() => {
+    delete _gcalUpdateTimers[key];
+    const title = (todo.text || '').replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
+    gcalUpdateEvent({
+      eventId: todo.gcalEventId,
+      title: title,
+      date: todo.date,
+      time: todo.time || ''
+    });
+  }, 1500);
+}
 
 // ── Auto-category detection ────────────────────────────────────────────────
 const CAT_KEYWORDS = [
@@ -2702,7 +2758,7 @@ function renderDateTodos() {
             ${todo.annualEventId ? `<span class="annual-badge">📅 연간</span>` : ''}
             ${getDueStatus(todo) ? `<span class="due-badge ${getDueStatus(todo)}">${DUE_LABEL[getDueStatus(todo)]}</span>` : ''}
           </div>
-          <textarea class="todo-text${todo.done?' done':''}" data-date-todo-text rows="1" style="width:100%; font-size:0.88rem; border:none; background:transparent; outline:none; resize:none; font-family:inherit;" ${todo.gcalEventId ? 'readonly' : ''}>${escHtml(todo.text.replace(/^\[\d{2}:\d{2}\]\s*/, ''))}</textarea>
+          <textarea class="todo-text${todo.done?' done':''}" data-date-todo-text rows="1" style="width:100%; font-size:0.88rem; border:none; background:transparent; outline:none; resize:none; font-family:inherit;" ${(todo.gcalEventId && !isWritableCalMinistry(m)) ? 'readonly' : ''}>${escHtml(todo.text.replace(/^\[\d{2}:\d{2}\]\s*/, ''))}</textarea>
           <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:2px;">
             <input type="date" class="event-date-input" data-date-todo-date value="${todo.date||''}" title="일정 날짜" style="font-size:0.72rem;" />
             <input type="time" style="font-size:0.72rem; border:1px solid var(--border); border-radius:5px; padding:2px 5px; outline:none; font-family:inherit; color:var(--text);" data-date-todo-time value="${getTodoTime(todo)}" title="일정 시간" />
@@ -2736,11 +2792,13 @@ function renderDateTodos() {
     // Textarea
     const textEl = li.querySelector('[data-date-todo-text]');
     textEl.oninput = e => {
-      if (!todo.gcalEventId) {
+      // 캘린더 todo는 "내 스케줄"만 수정 가능 (다른 캘린더는 readonly)
+      if (!todo.gcalEventId || isWritableCalMinistry(m)) {
         const timePrefix = todo.time ? `[${todo.time}] ` : '';
         todo.text = timePrefix + e.target.value;
         todo.updatedAt = Date.now();
         saveData();
+        if (todo.gcalEventId) scheduleGcalUpdate(m, todo);
         renderCards();
         autoResize.call(e.target);
       }
@@ -2760,6 +2818,7 @@ function renderDateTodos() {
       saveData();
       renderCards();
       renderDateTodos();
+      scheduleGcalUpdate(m, todo);
     };
 
     // Time
@@ -2778,6 +2837,7 @@ function renderDateTodos() {
       saveData();
       renderCards();
       renderDateTodos();
+      scheduleGcalUpdate(m, todo);
     };
 
     // Due Date
@@ -2906,18 +2966,30 @@ function openDrawer(m) {
     const timeVal = document.getElementById('drawerTodoTime').value;
     const timeLabel = timeVal ? `[${timeVal}] ` : '';
     const m = getDrawerM();
-    m.todos.push({
+    const newTodo = {
       id: uid(),
       text: timeLabel + text,
       date: dateVal || '',
       time: timeVal || '',
       done: false, progress: '', needs: '',
       updatedAt: Date.now()
-    });
+    };
+    m.todos.push(newTodo);
     sortTodos(m.todos);
     inp.value = '';
     document.getElementById('drawerTodoTime').value = '';
     saveData(); renderDrawerTodos(); renderCards();
+    // "내 스케줄" 사역에 추가된 todo는 캘린더에도 생성 (날짜 있어야)
+    if (isWritableCalMinistry(m) && dateVal) {
+      gcalCreateEvent({ title: text, date: dateVal, time: timeVal }).then(eventId => {
+        if (eventId) {
+          newTodo.gcalEventId = eventId;
+          newTodo.updatedAt = Date.now();
+          saveData();
+          showToast('📅 캘린더에 추가됨');
+        }
+      });
+    }
   };
   document.getElementById('drawerTodoAdd').onclick = addTodo;
   let _imeOn = false;
@@ -2960,16 +3032,17 @@ function openTodoDrawer(ministryId, todoId) {
   const titleInput = document.getElementById('drawerTitle');
   // Strip leading [HH:MM] time prefix for display
   titleInput.value = todo.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
-  titleInput.readOnly = !!todo.gcalEventId;
+  // "내 스케줄"은 수정 가능, 그 외 캘린더(GMC OFFICE 등)는 readonly
+  titleInput.readOnly = !!(todo.gcalEventId && !isWritableCalMinistry(m));
 
   // Title edit on input
   titleInput.oninput = e => {
-    if (activeMode === 'todo' && !todo.gcalEventId) {
+    if (activeMode === 'todo' && (!todo.gcalEventId || isWritableCalMinistry(m))) {
       const plainText = e.target.value;
       const timePrefix = todo.time ? `[${todo.time}] ` : '';
       todo.text = timePrefix + plainText;
       todo.updatedAt = Date.now();
-      
+
       const inlineTextEl = document.getElementById('singleTodoText');
       if (inlineTextEl) {
         inlineTextEl.value = plainText;
@@ -2977,6 +3050,7 @@ function openTodoDrawer(ministryId, todoId) {
       }
       saveData();
       renderCards();
+      if (todo.gcalEventId) scheduleGcalUpdate(m, todo);
     }
   };
   titleInput.onchange = null;
@@ -3328,6 +3402,7 @@ function renderDrawerTodos() {
         return ta < tb ? -1 : ta > tb ? 1 : 0;
       });
       saveData(); renderDrawerTodos(); renderCards();
+      scheduleGcalUpdate(m, todo);
     }
   }, sig);
 
@@ -3349,8 +3424,15 @@ function renderDrawerTodos() {
   list.addEventListener('input', e => {
     if (e.target.matches('[data-todo-text]')) {
       const li = e.target.closest('[data-todo-id]');
-      const todo = getDrawerM().todos.find(t => t.id === li.dataset.todoId);
-      if (todo) { todo.text = e.target.value; todo.updatedAt = Date.now(); saveData(); autoResize.call(e.target); }
+      const m = getDrawerM();
+      const todo = m.todos.find(t => t.id === li.dataset.todoId);
+      if (todo) {
+        todo.text = e.target.value;
+        todo.updatedAt = Date.now();
+        saveData();
+        autoResize.call(e.target);
+        if (todo.gcalEventId) scheduleGcalUpdate(m, todo);
+      }
     }
   }, sig);
 

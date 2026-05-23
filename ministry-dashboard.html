@@ -1831,6 +1831,7 @@ function saveData() {
     fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: payload
     }).catch(() => {});
   } catch(e) {}
@@ -3684,6 +3685,7 @@ async function syncSheets() {
     // 2) 병합된 데이터를 Apps Script에 push (캘린더 자동생성 제외)
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(dataForSync())
     });
     // 3) 구글 캘린더 이벤트 동기화

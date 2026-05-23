@@ -12,7 +12,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '6';
+    const _APP_VER = '7';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
       if ('caches' in window) caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k))));
@@ -1143,7 +1143,7 @@
     <button class="today-btn" id="todayBtn">이번 주</button>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
-    <button class="header-annual-btn" id="syncBtn" onclick="syncSheets()" title="Google Sheets 동기화">☁️ 동기화</button>
+    <button class="header-annual-btn" id="syncBtn" onclick="syncSheets()" title="Google Sheets 동기화" style="display:none;">☁️ 동기화</button>
     <a class="header-annual-btn" href="annual-dashboard.html">연간 사역 →</a>
   </div>
 </div>
@@ -3671,7 +3671,66 @@ fetch(APPS_SCRIPT_URL + '?action=gcal_events&t=' + Date.now(), { credentials: 'o
   })
   .catch(() => {});
 
-// ── Google Sheets 동기화 ──────────────────────────────────────────────────
+// ── 자동 백그라운드 동기화 ─────────────────────────────────────────────────
+// 변경 시 push는 saveData()에서 자동 처리. 여기서는 pull만 담당.
+let _autoPullInflight = false;
+async function autoPull(opts = {}) {
+  if (_autoPullInflight) return;
+  _autoPullInflight = true;
+  try {
+    // 1) Apps Script 사용자 데이터 pull
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 15000);
+    const r = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(),
+      { signal: ctrl.signal, credentials: 'omit', cache: 'no-store' });
+    clearTimeout(tid);
+    let changed = false;
+    if (r.ok) {
+      const fresh = await r.json();
+      changed = mergeIncomingData(fresh);
+      if (changed) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        renderCards();
+        if (activeMode === 'ministry') renderDrawerTodos();
+        else if (activeMode === 'date') renderDateTodos();
+        else if (activeMode === 'todo') renderDrawerTodosSingle();
+      }
+    }
+    // 2) 캘린더 이벤트 pull (옵션)
+    if (opts.includeCalendar) {
+      try {
+        const calCtrl = new AbortController();
+        const calTid = setTimeout(() => calCtrl.abort(), 15000);
+        const calR = await fetch(APPS_SCRIPT_URL + '?action=gcal_events&t=' + Date.now(),
+          { signal: calCtrl.signal, credentials: 'omit', cache: 'no-store' });
+        clearTimeout(calTid);
+        if (calR.ok) {
+          const events = await calR.json();
+          if (Array.isArray(events) && events.length > 0) {
+            window.GCAL_EVENTS = events;
+            importGCalEvents();
+            saveData();
+            renderCards();
+          }
+        }
+      } catch(e) {}
+    }
+    if (changed && opts.toast !== false) showToast('☁️ 동기화됨');
+  } catch(e) {} finally { _autoPullInflight = false; }
+}
+
+// 페이지 포커스 시 자동 pull (다른 기기에서 변경 즉시 반영)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) autoPull({ toast: false });
+});
+window.addEventListener('focus', () => autoPull({ toast: false }));
+
+// 페이지 active 동안 60초마다 백그라운드 pull
+setInterval(() => {
+  if (!document.hidden) autoPull({ toast: false });
+}, 60 * 1000);
+
+// 호환을 위해 syncSheets는 유지 (혹시 다른 곳에서 호출)
 async function syncSheets() {
   const btn = document.getElementById('syncBtn');
   const orig = btn.textContent;

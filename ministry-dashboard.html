@@ -6,6 +6,7 @@
   <title>GMC 주간 사역 관리</title>
   <link rel="manifest" href="/gmc-ministry/manifest.json" />
   <link rel="apple-touch-icon" href="/gmc-ministry/icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="GMC 사역" />
@@ -13,17 +14,18 @@
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
     const _APP_VER = '7';
+    const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
       if ('caches' in window) caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k))));
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           if (regs.length) { regs.forEach(r => r.unregister()); location.reload(); }
-          else navigator.serviceWorker.register('/gmc-ministry/sw.js');
+          else navigator.serviceWorker.register(swPath);
         });
       }
     } else if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/gmc-ministry/sw.js');
+      navigator.serviceWorker.register(swPath);
     }
   </script>
   <!-- GCAL_DATA_START -->
@@ -2641,7 +2643,7 @@ function importGCalEvents() {
         done: false,
         progress: '',
         needs: '',
-        updatedAt: Date.now(),
+        updatedAt: 0,
       });
       changed = true;
     }
@@ -3718,7 +3720,7 @@ function mergeIncomingData(fresh) {
               const freshTUpdatedAt = freshT.updatedAt || 0;
               const localTUpdatedAt = dup.updatedAt || 0;
 
-              if (freshTUpdatedAt > localTUpdatedAt) {
+              if (freshTUpdatedAt > localTUpdatedAt || localTUpdatedAt === 0) {
                 dup.done = freshT.done;
                 dup.text = freshT.text;
                 dup.date = freshT.date;
@@ -3902,3 +3904,4 @@ function showToast(msg) {
 </script>
 </body>
 </html>
+

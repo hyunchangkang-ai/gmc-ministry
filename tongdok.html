@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMC 성경 통독 2026</title>
+  <link rel="manifest" href="/gmc-ministry/manifest.json" />
+  <link rel="apple-touch-icon" href="/gmc-ministry/icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GMC 통독" />
+  <meta name="theme-color" content="#1a3a5c" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/sw.js' : 'sw.js';
+      navigator.serviceWorker.register(swPath);
+    }
+  </script>
+  <style>
+    :root {
+      --primary: #1a3a5c;
+      --primary-light: #2d5f8a;
+      --accent: #c8973e;
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --border: #d1dce8;
+      --text: #1a2535;
+      --text-muted: #6b7f96;
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --green: #2e7d32;
+      --green-bg: #e8f5e9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 0 16px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .header-btn:hover { background: rgba(255,255,255,0.28); }
+    .header-title { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.3px; }
+
+    /* ── Main ── */
+    .main { max-width: 920px; margin: 0 auto; padding: 16px; }
+
+    /* ── Stats card ── */
+    .stats-card {
+      background: var(--primary);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 0.68rem; opacity: 0.7; margin-top: 3px; }
+    .progress-bar-bg {
+      background: rgba(255,255,255,0.2);
+      border-radius: 6px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      background: var(--accent);
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.5s ease;
+      min-width: 2px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      opacity: 0.65;
+      margin-top: 5px;
+    }
+
+    /* ── Today card ── */
+    .today-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--accent);
+      box-shadow: var(--shadow);
+    }
+    .today-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .today-passage {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.5;
+    }
+    .today-daynum {
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .today-check-btn {
+      margin-top: 10px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .today-check-btn.done {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+    .today-check-btn:hover:not(.done) { background: #1b5e20; }
+
+    /* ── Month nav ── */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .nav-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .nav-btn:hover { background: var(--bg); }
+    .month-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .month-prog-text { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Calendar ── */
+    .calendar-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .cal-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--primary);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .cal-header span { padding: 8px 0; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .cal-cell {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 5px 6px;
+      min-height: 80px;
+      cursor: pointer;
+      transition: background 0.12s;
+      position: relative;
+    }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-cell.empty { background: #f8f9fb; cursor: default; }
+    .cal-cell:hover:not(.empty) { background: #eef2f7; }
+    .cal-cell.today-cell { background: #fff8e1; }
+    .cal-cell.done-cell { background: var(--green-bg); }
+    .cal-cell.done-cell.today-cell { background: #c8e6c9; }
+    .cell-date {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cell-date.sun { color: #c62828; }
+    .cell-date.sat { color: #1565c0; }
+    .today-dot {
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .cell-passage {
+      font-size: 0.62rem;
+      color: var(--primary);
+      line-height: 1.35;
+      font-weight: 600;
+    }
+    .cell-done-mark {
+      margin-top: 4px;
+      font-size: 0.65rem;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    /* ── Month overview ── */
+    .month-overview {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .month-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.1s;
+    }
+    .month-bar-row:hover { background: var(--bg); }
+    .month-bar-label {
+      width: 28px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .month-bar-track {
+      flex: 1;
+      background: var(--border);
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .month-bar-fill {
+      background: var(--accent);
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .month-bar-pct {
+      width: 30px;
+      text-align: right;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* ── Scripture ── */
+    .scripture-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .scripture-text {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      font-style: italic;
+      opacity: 0.92;
+    }
+    .scripture-ref {
+      font-size: 0.72rem;
+      opacity: 0.6;
+      margin-top: 6px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 580px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-num { font-size: 1.5rem; }
+      .cal-cell { min-height: 64px; padding: 4px; }
+      .cell-passage { font-size: 0.56rem; }
+      .today-dot { width: 18px; height: 18px; font-size: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    <a href="ministry-dashboard.html" class="header-btn">← 대시보드</a>
+    <span class="header-title">성경 통독</span>
+  </div>
+  <span class="header-btn" style="cursor:default;">2026년</span>
+</header>
+
+<main class="main">
+
+  <!-- Stats -->
+  <div class="stats-card">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num" id="stat-done">0</div>
+        <div class="stat-label">완료일</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat-remain">365</div>
+        <div class="stat-label">남은일</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat-streak">0</div>
+        <div class="stat-label">연속일</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat-pct">0%</div>
+        <div class="stat-label">완료율</div>
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="annual-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-label">
+      <span>창세기 1장</span>
+      <span id="progress-mid"></span>
+      <span>계시록 22장</span>
+    </div>
+  </div>
+
+  <!-- Today's reading -->
+  <div class="today-card">
+    <div class="today-label">오늘의 통독 범위</div>
+    <div class="today-daynum" id="today-daynum"></div>
+    <div class="today-passage" id="today-passage">로딩 중...</div>
+    <button class="today-check-btn" id="today-btn" onclick="toggleToday()">완료 체크</button>
+  </div>
+
+  <!-- Month navigation -->
+  <div class="month-nav">
+    <button class="nav-btn" onclick="changeMonth(-1)">◀</button>
+    <div style="text-align:center;">
+      <div class="month-title" id="month-title"></div>
+      <div class="month-prog-text" id="month-prog-text"></div>
+    </div>
+    <button class="nav-btn" onclick="changeMonth(1)">▶</button>
+  </div>
+
+  <!-- Calendar -->
+  <div class="calendar-card">
+    <div class="cal-header">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- Annual overview -->
+  <div class="month-overview">
+    <div class="section-title">월별 진행 현황 (클릭하면 해당 월로 이동)</div>
+    <div id="month-bars"></div>
+  </div>
+
+  <!-- Scripture -->
+  <div class="scripture-card">
+    <div class="scripture-text">"주의 말씀은 내 발에 등이요 내 길에 빛이니이다"</div>
+    <div class="scripture-ref">시편 119:105</div>
+  </div>
+
+</main>
+
+<script>
+// ── Bible books (Korean name + chapter count) ──
+const BOOKS = [
+  {n:'창세기',c:50},{n:'출애굽기',c:40},{n:'레위기',c:27},{n:'민수기',c:36},
+  {n:'신명기',c:34},{n:'여호수아',c:24},{n:'사사기',c:21},{n:'룻기',c:4},
+  {n:'사무엘상',c:31},{n:'사무엘하',c:24},{n:'열왕기상',c:22},{n:'열왕기하',c:25},
+  {n:'역대상',c:29},{n:'역대하',c:36},{n:'에스라',c:10},{n:'느헤미야',c:13},
+  {n:'에스더',c:10},{n:'욥기',c:42},{n:'시편',c:150},{n:'잠언',c:31},
+  {n:'전도서',c:12},{n:'아가',c:8},{n:'이사야',c:66},{n:'예레미야',c:52},
+  {n:'예레미야애가',c:5},{n:'에스겔',c:48},{n:'다니엘',c:12},{n:'호세아',c:14},
+  {n:'요엘',c:3},{n:'아모스',c:9},{n:'오바댜',c:1},{n:'요나',c:4},
+  {n:'미가',c:7},{n:'나훔',c:3},{n:'하박국',c:3},{n:'스바냐',c:3},
+  {n:'학개',c:2},{n:'스가랴',c:14},{n:'말라기',c:4},
+  {n:'마태복음',c:28},{n:'마가복음',c:16},{n:'누가복음',c:24},{n:'요한복음',c:21},
+  {n:'사도행전',c:28},{n:'로마서',c:16},{n:'고린도전서',c:16},{n:'고린도후서',c:13},
+  {n:'갈라디아서',c:6},{n:'에베소서',c:6},{n:'빌립보서',c:4},{n:'골로새서',c:4},
+  {n:'데살로니가전서',c:5},{n:'데살로니가후서',c:3},{n:'디모데전서',c:6},{n:'디모데후서',c:4},
+  {n:'디도서',c:3},{n:'빌레몬서',c:1},{n:'히브리서',c:13},{n:'야고보서',c:5},
+  {n:'베드로전서',c:5},{n:'베드로후서',c:3},{n:'요한일서',c:5},{n:'요한이서',c:1},
+  {n:'요한삼서',c:1},{n:'유다서',c:1},{n:'요한계시록',c:22}
+];
+
+// Build flat chapter list: [{book, ch}, ...]
+const ALL_CH = [];
+for (const b of BOOKS) {
+  for (let i = 1; i <= b.c; i++) ALL_CH.push({b: b.n, c: i});
+}
+// Total: 1189 chapters
+
+// Distribute evenly across 365 days (PLAN[0] = Jan 1, PLAN[364] = Dec 31)
+const TOTAL = ALL_CH.length; // 1189
+const PLAN = [];
+for (let d = 0; d < 365; d++) {
+  const s = Math.floor(TOTAL * d / 365);
+  const e = Math.floor(TOTAL * (d + 1) / 365);
+  PLAN.push(ALL_CH.slice(s, e));
+}
+
+// Format a day's chapter list into a readable Korean string
+function fmt(chs) {
+  if (!chs || chs.length === 0) return '';
+  const groups = [];
+  let cur = null;
+  for (const {b, c} of chs) {
+    if (!cur || cur.b !== b) { cur = {b, s: c, e: c}; groups.push(cur); }
+    else cur.e = c;
+  }
+  return groups.map(g => g.s === g.e ? `${g.b} ${g.s}장` : `${g.b} ${g.s}-${g.e}장`).join(', ');
+}
+
+// Day-of-year for a Date (1 = Jan 1)
+function doy(date) {
+  const jan1 = new Date(date.getFullYear(), 0, 0);
+  return Math.floor((date - jan1) / 86400000);
+}
+
+// ── State ──
+const YEAR = 2026;
+const KEY = 'tongdok_2026';
+let done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
+let curMonth = new Date().getMonth();
+
+function save() { localStorage.setItem(KEY, JSON.stringify([...done])); }
+
+const todayDate = new Date();
+const todayDoy = todayDate.getFullYear() === YEAR ? doy(todayDate) : null;
+
+// ── Stats ──
+function renderStats() {
+  const n = done.size;
+  const pct = Math.round(n / 365 * 100);
+  document.getElementById('stat-done').textContent = n;
+  document.getElementById('stat-remain').textContent = 365 - n;
+  document.getElementById('stat-pct').textContent = pct + '%';
+  document.getElementById('annual-bar').style.width = pct + '%';
+
+  // Streak: count consecutive days ending at today (or last done day)
+  let streak = 0;
+  let chk = todayDoy || doy(new Date());
+  if (!done.has(chk)) chk--;
+  while (chk >= 1 && done.has(chk)) { streak++; chk--; }
+  document.getElementById('stat-streak').textContent = streak;
+
+  // Progress mid label
+  const maxDone = done.size > 0 ? Math.max(...done) : 0;
+  if (maxDone >= 1 && maxDone <= 365) {
+    const last = PLAN[maxDone - 1];
+    const ref = last[last.length - 1];
+    document.getElementById('progress-mid').textContent = ref.b + ' ' + ref.c + '장까지';
+  } else {
+    document.getElementById('progress-mid').textContent = '';
+  }
+}
+
+// ── Today card ──
+function renderToday() {
+  if (!todayDoy || todayDoy > 365) {
+    document.getElementById('today-passage').textContent = '2026년 통독 계획 범위 밖입니다.';
+    document.getElementById('today-btn').style.display = 'none';
+    return;
+  }
+  document.getElementById('today-daynum').textContent = `Day ${todayDoy} / 365`;
+  document.getElementById('today-passage').textContent = fmt(PLAN[todayDoy - 1]);
+  const btn = document.getElementById('today-btn');
+  if (done.has(todayDoy)) {
+    btn.textContent = '완료 (취소하려면 클릭)';
+    btn.classList.add('done');
+  } else {
+    btn.textContent = '완료 체크';
+    btn.classList.remove('done');
+  }
+}
+
+function toggleToday() {
+  if (!todayDoy) return;
+  done.has(todayDoy) ? done.delete(todayDoy) : done.add(todayDoy);
+  save();
+  renderAll();
+}
+
+// ── Calendar ──
+const MONTH_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+function renderCalendar() {
+  const first = new Date(YEAR, curMonth, 1);
+  const last = new Date(YEAR, curMonth + 1, 0);
+  const startDow = first.getDay();
+  const daysInMo = last.getDate();
+
+  // Month progress
+  let mDone = 0, mTotal = 0;
+  for (let d = 1; d <= daysInMo; d++) {
+    const dy = doy(new Date(YEAR, curMonth, d));
+    if (dy >= 1 && dy <= 365) { mTotal++; if (done.has(dy)) mDone++; }
+  }
+  const mPct = mTotal ? Math.round(mDone / mTotal * 100) : 0;
+  document.getElementById('month-title').textContent = `2026년 ${MONTH_KO[curMonth]}`;
+  document.getElementById('month-prog-text').textContent = `${mDone}/${mTotal}일 완료 (${mPct}%)`;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Empty leading cells
+  for (let i = 0; i < startDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  // Day cells
+  for (let d = 1; d <= daysInMo; d++) {
+    const date = new Date(YEAR, curMonth, d);
+    const dy = doy(date);
+    const isToday = todayDate.getFullYear() === YEAR && todayDate.getMonth() === curMonth && todayDate.getDate() === d;
+    const isDone = done.has(dy);
+    const dow = date.getDay();
+
+    const cell = document.createElement('div');
+    let cls = 'cal-cell';
+    if (isToday) cls += ' today-cell';
+    if (isDone) cls += ' done-cell';
+    cell.className = cls;
+    cell.onclick = () => toggleDay(dy);
+
+    // Date number
+    const dateRow = document.createElement('div');
+    dateRow.className = 'cell-date' + (dow === 0 ? ' sun' : dow === 6 ? ' sat' : '');
+    if (isToday) {
+      const dot = document.createElement('span');
+      dot.className = 'today-dot';
+      dot.textContent = d;
+      dateRow.appendChild(dot);
+    } else {
+      dateRow.textContent = d;
+    }
+    cell.appendChild(dateRow);
+
+    // Passage
+    if (dy >= 1 && dy <= 365) {
+      const pEl = document.createElement('div');
+      pEl.className = 'cell-passage';
+      pEl.textContent = fmt(PLAN[dy - 1]);
+      cell.appendChild(pEl);
+    }
+
+    // Done mark
+    if (isDone) {
+      const mk = document.createElement('div');
+      mk.className = 'cell-done-mark';
+      mk.textContent = '완료';
+      cell.appendChild(mk);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  // Trailing empty cells
+  const totalCells = startDow + daysInMo;
+  const trail = (7 - (totalCells % 7)) % 7;
+  for (let i = 0; i < trail; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+}
+
+function toggleDay(dy) {
+  if (dy < 1 || dy > 365) return;
+  done.has(dy) ? done.delete(dy) : done.add(dy);
+  save();
+  renderAll();
+}
+
+// ── Month bars ──
+function renderMonthBars() {
+  const container = document.getElementById('month-bars');
+  container.innerHTML = '';
+  for (let m = 0; m < 12; m++) {
+    const last = new Date(YEAR, m + 1, 0).getDate();
+    let mDone = 0, mTotal = 0;
+    for (let d = 1; d <= last; d++) {
+      const dy = doy(new Date(YEAR, m, d));
+      if (dy >= 1 && dy <= 365) { mTotal++; if (done.has(dy)) mDone++; }
+    }
+    const pct = mTotal ? Math.round(mDone / mTotal * 100) : 0;
+
+    const row = document.createElement('div');
+    row.className = 'month-bar-row';
+    row.innerHTML = `
+      <span class="month-bar-label">${MONTH_KO[m]}</span>
+      <div class="month-bar-track"><div class="month-bar-fill" style="width:${pct}%"></div></div>
+      <span class="month-bar-pct">${pct}%</span>
+    `;
+    const mm = m;
+    row.onclick = () => { curMonth = mm; renderCalendar(); };
+    container.appendChild(row);
+  }
+}
+
+function changeMonth(dir) {
+  curMonth = Math.max(0, Math.min(11, curMonth + dir));
+  renderCalendar();
+}
+
+function renderAll() {
+  renderStats();
+  renderToday();
+  renderCalendar();
+  renderMonthBars();
+}
+
+renderAll();
+</script>
+</body>
+</html>

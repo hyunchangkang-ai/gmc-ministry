@@ -1673,28 +1673,55 @@ async function gcalUpdateEvent({ eventId, title, date, time }) {
   } catch(e) {}
 }
 
+async function gcalDeleteEvent({ eventId }) {
+  try {
+    await fetch(APPS_SCRIPT_URL + '?action=gcal_delete&t=' + Date.now(), {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ calendarId: WRITABLE_CALENDAR_ID, eventId })
+    });
+  } catch(e) {}
+}
+
 // 사역이 "내 스케줄" 캘린더 사역인지 판별
 function isWritableCalMinistry(m) {
   return m && m.gcalId === WRITABLE_CALENDAR_ID;
 }
 
-// todo 변경 시 "내 스케줄" 캘린더에 반영 (디바운스됨)
+// todo 변경 시 "내 스케줄" 캘린더에 반영 (디바운스됨, 신규 생성 및 수정 스마트 연동)
 const _gcalUpdateTimers = {};
 function scheduleGcalUpdate(m, todo) {
   if (!isWritableCalMinistry(m)) return;
-  if (!todo.gcalEventId) return;
-  if (!todo.date) return;
+  if (!todo.date) return; // 날짜가 기입되어 있어야 캘린더와 연동 가능
   const key = todo.id;
   if (_gcalUpdateTimers[key]) clearTimeout(_gcalUpdateTimers[key]);
   _gcalUpdateTimers[key] = setTimeout(() => {
     delete _gcalUpdateTimers[key];
     const title = (todo.text || '').replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
-    gcalUpdateEvent({
-      eventId: todo.gcalEventId,
-      title: title,
-      date: todo.date,
-      time: todo.time || ''
-    });
+    
+    if (!todo.gcalEventId) {
+      // 캘린더 이벤트가 아직 없는 경우 -> 신규 생성 연동
+      gcalCreateEvent({ title: title, date: todo.date, time: todo.time || '' }).then(eventId => {
+        if (eventId) {
+          todo.gcalEventId = eventId;
+          todo.updatedAt = Date.now();
+          saveData();
+          showToast('📅 캘린더에 일정 생성 완료');
+        }
+      });
+    } else {
+      // 캘린더 이벤트가 이미 있는 경우 -> 수정 연동
+      gcalUpdateEvent({
+        eventId: todo.gcalEventId,
+        title: title,
+        date: todo.date,
+        time: todo.time || ''
+      }).then(() => {
+        showToast('📅 캘린더 일정 수정 완료');
+      });
+    }
   }, 1500);
 }
 
@@ -2832,7 +2859,7 @@ function renderDateTodos() {
         todo.text = timePrefix + e.target.value;
         todo.updatedAt = Date.now();
         saveData();
-        if (todo.gcalEventId) scheduleGcalUpdate(m, todo);
+        scheduleGcalUpdate(m, todo);
         renderCards();
         autoResize.call(e.target);
       }
@@ -2889,7 +2916,10 @@ function renderDateTodos() {
         m.todos = m.todos.filter(x => x.id !== todo.id);
         data.deletedIds = data.deletedIds || {};
         data.deletedIds[todo.id] = Date.now();
-        if (todo.gcalEventId) data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
+        if (todo.gcalEventId) {
+          gcalDeleteEvent({ eventId: todo.gcalEventId });
+          data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
+        }
         saveData();
         renderCards();
         renderDateTodos();
@@ -3084,7 +3114,7 @@ function openTodoDrawer(ministryId, todoId) {
       }
       saveData();
       renderCards();
-      if (todo.gcalEventId) scheduleGcalUpdate(m, todo);
+      scheduleGcalUpdate(m, todo);
     }
   };
   titleInput.onchange = null;
@@ -3113,10 +3143,13 @@ function openTodoDrawer(ministryId, todoId) {
   // 편집 이벤트 바인딩
   sr.querySelector('#todoEditDate').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
+    const m = getDrawerM();
     t.date = e.target.value || null; t.updatedAt = Date.now(); saveData(); renderCards();
+    if (m) scheduleGcalUpdate(m, t);
   };
   sr.querySelector('#todoEditTime').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
+    const m = getDrawerM();
     t.time = e.target.value || '';
     // 텍스트 접두사도 동기화
     t.text = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
@@ -3124,6 +3157,7 @@ function openTodoDrawer(ministryId, todoId) {
     t.updatedAt = Date.now();
     saveData(); renderCards(); renderDrawerTodosSingle();
     document.getElementById('drawerTitle').value = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
+    if (m) scheduleGcalUpdate(m, t);
   };
   sr.querySelector('#todoEditCategory').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
@@ -3449,6 +3483,7 @@ function renderDrawerTodos() {
       data.deletedIds = data.deletedIds || {};
       data.deletedIds[li.dataset.todoId] = Date.now();
       if (deletedTodo && deletedTodo.gcalEventId) {
+        gcalDeleteEvent({ eventId: deletedTodo.gcalEventId });
         data.deletedIds['gcalev:' + gcalBaseId(deletedTodo.gcalEventId)] = Date.now();
       }
       saveData(); renderDrawerTodos(); renderCards();
@@ -3465,7 +3500,7 @@ function renderDrawerTodos() {
         todo.updatedAt = Date.now();
         saveData();
         autoResize.call(e.target);
-        if (todo.gcalEventId) scheduleGcalUpdate(m, todo);
+        scheduleGcalUpdate(m, todo);
       }
     }
   }, sig);

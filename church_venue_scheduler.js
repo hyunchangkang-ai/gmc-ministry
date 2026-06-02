@@ -184,7 +184,7 @@ function processLatestSubmissions() {
       Logger.log(`[충돌] ${idx}번 행 (${name}님, ${room}호): 선순위 예약과 충돌이 감지되어 취소되었습니다.`);
       
       // 나중에 신청한 이 성도님께 안내 메일 발송
-      sendConflictEmail(email, name, room, dateTimeStr, purpose);
+      sendConflictEmail(email, name, room, dateTimeStr);
       
     } else {
       // 예약 등록 승인! (캘린더 등록 + 상태 완료 기록)
@@ -196,6 +196,8 @@ function processLatestSubmissions() {
         sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_APPROVED);
         sheet.getRange(idx, COL_STATUS + 1).setBackground("#b6d7a8"); // 연한 초록색 표시
         Logger.log(`[성공] ${idx}번 행 (${name}님, ${room}호): 구글 캘린더에 성공적으로 등록되었습니다.`);
+        // 예약 승인 확인 메일 발송
+        sendApprovalEmail(email, name, room, dateTimeStr);
       } else {
         sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_ERROR);
         sheet.getRange(idx, COL_STATUS + 1).setBackground("#f8cbad"); // 연한 주황색(오류) 표시
@@ -218,39 +220,58 @@ function cleanStr(str) {
 }
 
 /**
- * 일정 충돌이 발생한 신청자에게 정중한 알림 이메일을 전송합니다.
+ * 예약 승인 확인 이메일을 전송합니다.
  */
-function sendConflictEmail(email, name, room, dateTimeStr, purpose) {
+function sendApprovalEmail(email, name, room, dateTimeStr) {
   if (!email || !email.includes("@")) {
     Logger.log(`[이메일 생략] '${name}'님의 이메일 주소('${email}')가 올바르지 않아 메일을 발송하지 못했습니다.`);
     return;
   }
   
-  const subject = `[교회 장소 신청 안내] 신청하신 장소 일정에 충돌이 발생했습니다.`;
+  const subject = `[교회 장소 신청] 장소 예약이 확인되었습니다.`;
   const body = `안녕하세요, ${name} 성도님.
 
-교회 장소 사용 신청에 대해 안내해 드립니다.
-제출해 주신 교실 예약 신청이 이미 먼저 접수된 다른 예약 건과 일정이 충돌하여 안타깝게도 취소 처리되었습니다.
+장소 신청 예약이 확인되었습니다. 신청하신 요일/시간에 장소를 사용하실 수 있습니다. 기타 문의는 office@gmcusa.org로 해주시기 바랍니다. 감사합니다.
 
-교실 사용은 먼저 접수한 타임스탬프(선착순)를 기준으로 승인됩니다.
+■ 신청 장소: ${room}
+■ 사용 시간: ${dateTimeStr}
 
-■ 신청하셨던 내용:
-- 신청 교실 (장소): ${room}
-- 사용 요청 일자 및 시간: ${dateTimeStr}
-- 사용 목적: ${purpose}
-
-이미 동일한 시간대에 해당 교실에 대한 다른 부서의 장소 예약이 완료된 상태입니다.
-번거로우시겠지만, 다른 교실을 선택하시거나 시간대를 변경하시어 다시 한 번 신청해 주시기를 부탁드립니다.
-
-교회 운영 및 관리에 적극 협조해 주셔서 감사드립니다.
-
-교회 행정실 드림
+GMC 행정실 드림
 ---------------------------------------------
 본 메일은 구글 스프레드시트 장소 예약 시스템에서 자동으로 발송되었습니다.`;
 
   try {
     MailApp.sendEmail(email, subject, body);
-    Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 일정 충돌 메일을 발송하였습니다.`);
+    Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 예약 승인 확인 메일을 발송하였습니다.`);
+  } catch (error) {
+    Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
+  }
+}
+
+/**
+ * 일정 충돌이 발생한 신청자에게 알림 이메일을 전송합니다.
+ */
+function sendConflictEmail(email, name, room, dateTimeStr) {
+  if (!email || !email.includes("@")) {
+    Logger.log(`[이메일 생략] '${name}'님의 이메일 주소('${email}')가 올바르지 않아 메일을 발송하지 못했습니다.`);
+    return;
+  }
+  
+  const subject = `[교회 장소 신청 안내] 신청하신 장소 예약 일정에 충돌이 발생했습니다.`;
+  const body = `안녕하세요, ${name} 성도님.
+
+신청하신 장소는 이미 예약되어 있습니다. 다른 요일/시간으로 조정하거나 다른 장소를 정하여 다시 신청해 주시기 바랍니다.
+
+■ 신청 장소: ${room}
+■ 사용 시간: ${dateTimeStr}
+
+GMC 행정실 드림
+---------------------------------------------
+본 메일은 구글 스프레드시트 장소 예약 시스템에서 자동으로 발송되었습니다.`;
+
+  try {
+    MailApp.sendEmail(email, subject, body);
+    Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 일정 충돌 취소 메일을 발송하였습니다.`);
   } catch (error) {
     Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
   }

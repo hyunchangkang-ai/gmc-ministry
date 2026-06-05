@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMC 사역 통합 관리 시스템</title>
+  <link rel="manifest" href="/gmc-ministry/Administration/manifest.json" />
+  <link rel="apple-touch-icon" href="/gmc-ministry/Administration/icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GMC 사역 통합" />
+  <meta name="theme-color" content="#0f172a" />
+  
+  <!-- Google Fonts: Inter & Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(217, 119, 6, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b; /* Gold/Amber */
+      --accent-rgb: 245, 158, 11;
+      --success: #10b981;
+      --error: #ef4444;
+      --blue: #3b82f6;
+      --radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Background decoration */
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      opacity: 0.25;
+    }
+    .bg-circle-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--blue);
+      top: -100px;
+      right: -50px;
+    }
+    .bg-circle-2 {
+      width: 500px;
+      height: 500px;
+      background: var(--accent);
+      bottom: -150px;
+      left: -100px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 8px;
+      animation: fadeInDown 0.8s ease;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .logo-svg {
+      width: 48px;
+      height: 48px;
+      fill: var(--accent);
+      filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #e2e8f0, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 8px;
+    }
+
+    /* Grid Layouts */
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 4px solid var(--accent);
+      padding-left: 10px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    /* Glassmorphism Card */
+    .hub-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-decoration: none;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hub-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 1;
+    }
+
+    .hub-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--card-hover-border);
+      box-shadow: 0 16px 36px 0 rgba(245, 158, 11, 0.15);
+    }
+
+    .hub-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .hub-card:hover .card-icon-wrapper {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    .card-icon {
+      width: 26px;
+      height: 26px;
+      fill: var(--accent);
+      transition: var(--transition);
+    }
+
+    .hub-card:hover .card-icon {
+      fill: #0f172a;
+    }
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-info h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .card-info p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .card-arrow {
+      align-self: flex-end;
+      color: var(--accent);
+      font-size: 1.2rem;
+      font-weight: bold;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: auto;
+    }
+
+    .hub-card:hover .card-arrow {
+      transform: translateX(4px);
+    }
+
+    /* Main Section: split panel */
+    .dashboard-panel {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 24px;
+      animation: fadeInUp 1s ease;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-block {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    /* Services List */
+    .services-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .service-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+    }
+
+    .service-item:hover {
+      background: rgba(15, 23, 42, 0.6);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .service-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .service-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .service-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .service-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .service-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .service-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .status-online {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .status-offline {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .status-scheduled {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--blue);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-online .dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .status-offline .dot { background: var(--error); box-shadow: 0 0 6px var(--error); }
+    .status-scheduled .dot { background: var(--blue); }
+
+    /* Console Command Box */
+    .command-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .command-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .command-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .command-line {
+      display: flex;
+      align-items: center;
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      position: relative;
+    }
+
+    .command-text {
+      flex: 1;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+
+    .command-text::-webkit-scrollbar { display: none; }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      transition: var(--transition);
+      font-family: sans-serif;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px 0 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--accent);
+      color: #0f172a;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 1000;
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-circle bg-circle-1"></div>
+  <div class="bg-circle bg-circle-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <!-- Premium Cross/Globe SVG Logo -->
+        <svg class="logo-svg" viewBox="0 0 24 24">
+          <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4M12,18A2,2 0 0,1 10,16A2,2 0 0,1 12,14A2,2 0 0,1 14,16A2,2 0 0,1 12,18M5.7,8.25D1.5,1.5 0 0,1 7.2,6.75A1.5,1.5 0 0,1 8.7,8.25A1.5,1.5 0 0,1 7.2,9.75A1.5,1.5 0 0,1 5.7,8.25M15.3,8.25A1.5,1.5 0 0,1 16.8,6.75A1.5,1.5 0 0,1 18.3,8.25A1.5,1.5 0 0,1 16.8,9.75A1.5,1.5 0 0,1 15.3,8.25M7.2,17.25A1.5,1.5 0 0,1 5.7,15.75A1.5,1.5 0 0,1 7.2,14.25A1.5,1.5 0 0,1 8.7,15.75A1.5,1.5 0 0,1 7.2,17.25M16.8,17.25A1.5,1.5 0 0,1 15.3,15.75A1.5,1.5 0 0,1 16.8,14.25A1.5,1.5 0 0,1 18.3,15.75A1.5,1.5 0 0,1 16.8,17.25Z" />
+        </svg>
+      </div>
+      <h1>GMC 사역 통합 관리 시스템</h1>
+      <p>Global Mission Church Ministry Integration Hub</p>
+    </header>
+
+    <!-- Navigation Hub Grid -->
+    <div>
+      <h2 class="section-title">사역 관리 서비스 바로가기</h2>
+      <div class="cards-grid">
+        <!-- Card 1: Weekly Dashboard -->
+        <a href="ministry-dashboard.html" class="hub-card">
+          <div class="card-icon-wrapper">
+            <svg class="card-icon" viewBox="0 0 24 24">
+              <path d="M19,19H5V8H19M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M16.53,11.06L15.47,10L10.59,14.88L8.47,12.76L7.41,13.82L10.59,17L16.53,11.06Z" />
+            </svg>
+          </div>
+          <div class="card-info">
+            <h3>주간 사역 대시보드</h3>
+            <p>주간 일정 및 할 일 목록을 작성하고, 구글 캘린더 및 구글 시트에 원클릭으로 동기화합니다.</p>
+          </div>
+          <div class="card-arrow">바로가기 &rarr;</div>
+        </a>
+
+        <!-- Card 2: Annual Dashboard -->
+        <a href="annual-dashboard.html" class="hub-card">
+          <div class="card-icon-wrapper">
+            <svg class="card-icon" viewBox="0 0 24 24">
+              <path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M9,14H7V16H9V14M13,14H11V16H13V14M17,14H15V16H17V14Z" />
+            </svg>
+          </div>
+          <div class="card-info">
+            <h3>연간 사역 대시보드</h3>
+            <p>2026년도 전체 연간 사역 계획 일정을 부서별/월별로 한눈에 파악하고 상세 업무를 조율합니다.</p>
+          </div>
+          <div class="card-arrow">바로가기 &rarr;</div>
+        </a>
+
+        <!-- Card 3: Folder Explorer -->
+        <a href="folder_page.html" class="hub-card">
+          <div class="card-icon-wrapper">
+            <svg class="card-icon" viewBox="0 0 24 24">
+              <path d="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z" />
+            </svg>
+          </div>
+          <div class="card-info">
+            <h3>사역 폴더 탐색기</h3>
+            <p>수집된 매주 주보 파일 아카이브와 텍스트 추출 결과 및 기록된 역사적 사역 이력을 탐색합니다.</p>
+          </div>
+          <div class="card-arrow">바로가기 &rarr;</div>
+        </a>
+
+        <!-- Card 4: Legacy Weekly Dashboard (Backup) -->
+        <a href="index_old.html" class="hub-card">
+          <div class="card-icon-wrapper">
+            <svg class="card-icon" viewBox="0 0 24 24">
+              <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" />
+            </svg>
+          </div>
+          <div class="card-info">
+            <h3>주간 사역 관리 (구버전)</h3>
+            <p>이전 버전의 GMC 주간 사역 관리 페이지 백업입니다. 필요 시 기존 저장소 기록 조회용으로 활용합니다.</p>
+          </div>
+          <div class="card-arrow">바로가기 &rarr;</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Section: Status & Manual Commands -->
+    <div class="dashboard-panel">
+      <!-- Panel 1: Services Monitor -->
+      <div class="panel-block">
+        <h2 class="section-title">백그라운드 자동화 서비스 현황</h2>
+        <div class="services-list">
+          
+          <!-- Service: Local Server -->
+          <div class="service-item">
+            <div class="service-meta">
+              <div class="service-icon-wrap">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4,15H20V17H4V15M4,11H20V13H4V11M4,7H20V9H4V7M4,3H20V5H4V3Z" />
+                </svg>
+              </div>
+              <div class="service-details">
+                <span class="service-name">로컬 데이터 서버 (Data Server)</span>
+                <span class="service-desc">대시보드 저장 및 시트 비동기 동기화 헬퍼 (Port 8765)</span>
+              </div>
+            </div>
+            <div class="service-status status-offline" id="srv-local-server">
+              <span class="dot"></span> <span class="status-lbl">오프라인</span>
+            </div>
+          </div>
+
+          <!-- Service: GCal Sync -->
+          <div class="service-item">
+            <div class="service-meta">
+              <div class="service-icon-wrap">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
+                </svg>
+              </div>
+              <div class="service-details">
+                <span class="service-name">구글 캘린더 연동 (GCal Sync)</span>
+                <span class="service-desc">캘린더 일정을 분석해 대시보드 자동 연동 (매일 00:00)</span>
+              </div>
+            </div>
+            <div class="service-status status-scheduled">
+              <span class="dot"></span> 매일 00:00
+            </div>
+          </div>
+
+          <!-- Service: Sheets Sync -->
+          <div class="service-item">
+            <div class="service-meta">
+              <div class="service-icon-wrap">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2zm0 8H7v-2h10v2z" />
+                </svg>
+              </div>
+              <div class="service-details">
+                <span class="service-name">구글 시트 동기화 (Sheets Sync)</span>
+                <span class="service-desc">스프레드시트 예배 당번 정보 캘린더 반영 (매주 금요일 18:00)</span>
+              </div>
+            </div>
+            <div class="service-status status-scheduled">
+              <span class="dot"></span> 매주 금 18:00
+            </div>
+          </div>
+
+          <!-- Service: Report Generator -->
+          <div class="service-item">
+            <div class="service-meta">
+              <div class="service-icon-wrap">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                </svg>
+              </div>
+              <div class="service-details">
+                <span class="service-name">주간 목회 사역보고서 생성</span>
+                <span class="service-desc">완료된 사역 보고용 Word 문서 자동 작성 및 업로드 (매주 화요일 07:00)</span>
+              </div>
+            </div>
+            <div class="service-status status-scheduled">
+              <span class="dot"></span> 매주 화 07:00
+            </div>
+          </div>
+
+          <!-- Service: Bible Bot -->
+          <div class="service-item">
+            <div class="service-meta">
+              <div class="service-icon-wrap">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm0 4h12v2H6v-2zm0 4h12v2H6v-2zm0-8h12v2H6V5z" />
+                </svg>
+              </div>
+              <div class="service-details">
+                <span class="service-name">성경 통독 알림 카카오봇</span>
+                <span class="service-desc">통독방에 매일 아침 성경 통독 범위 자동 전송 (매일 06:00)</span>
+              </div>
+            </div>
+            <div class="service-status status-scheduled">
+              <span class="dot"></span> 매일 06:00
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- Panel 2: Manual Commands -->
+      <div class="panel-block">
+        <h2 class="section-title">수동 제어 및 터미널 명령어</h2>
+        <div class="command-box">
+          <p style="font-size: 0.85rem; color: var(--text-muted);">특정 사역 배치 작업을 수동으로 실행하거나 테스트하려면 아래 명령어를 터미널에서 실행해 주세요.</p>
+          
+          <!-- Command 1 -->
+          <div class="command-item">
+            <span class="command-label">1. 구글 캘린더 동기화 수동 실행</span>
+            <div class="command-line">
+              <span class="command-text">python3 gcal_sync.py</span>
+              <button class="copy-btn" onclick="copyCmd('python3 gcal_sync.py')">복사</button>
+            </div>
+          </div>
+
+          <!-- Command 2 -->
+          <div class="command-item">
+            <span class="command-label">2. 예배 위원 배정 정보 GCal 동기화</span>
+            <div class="command-line">
+              <span class="command-text">python3 sheets_to_gcal.py</span>
+              <button class="copy-btn" onclick="copyCmd('python3 sheets_to_gcal.py')">복사</button>
+            </div>
+          </div>
+
+          <!-- Command 3 -->
+          <div class="command-item">
+            <span class="command-label">3. 주간 사역보고서 즉시 빌드</span>
+            <div class="command-line">
+              <span class="command-text">python3 ministry_report.py</span>
+              <button class="copy-btn" onclick="copyCmd('python3 ministry_report.py')">복사</button>
+            </div>
+          </div>
+
+          <!-- Command 4 -->
+          <div class="command-item">
+            <span class="command-label">4. 주간 파이프라인 전체 순차 실행</span>
+            <div class="command-line">
+              <span class="command-text">python3 run_weekly_pipeline.py</span>
+              <button class="copy-btn" onclick="copyCmd('python3 run_weekly_pipeline.py')">복사</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      GMC Ministry Administration System &copy; 2026. All Rights Reserved.
+    </footer>
+  </div>
+
+  <!-- Toast Element -->
+  <div class="toast" id="toast">복사되었습니다!</div>
+
+  <script>
+    // Local server online check
+    async function checkLocalServer() {
+      const serverEl = document.getElementById('srv-local-server');
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2초 타임아웃
+        
+        const res = await fetch('http://127.0.0.1:8765/data', { 
+          signal: controller.signal,
+          mode: 'cors',
+          cache: 'no-store'
+        });
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          serverEl.className = 'service-status status-online';
+          serverEl.innerHTML = '<span class="dot"></span> 작동 중 (ONLINE)';
+        } else {
+          throw new Error('Not OK');
+        }
+      } catch (e) {
+        serverEl.className = 'service-status status-offline';
+        serverEl.innerHTML = '<span class="dot"></span> 중지됨 (OFFLINE)';
+      }
+    }
+
+    // Copy to clipboard helper
+    function copyCmd(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast();
+      });
+    }
+
+    // Show copy toast
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // Init check and periodic poll
+    checkLocalServer();
+    setInterval(checkLocalServer, 10000); // 10초마다 핑 확인
+  </script>
+</body>
+</html>

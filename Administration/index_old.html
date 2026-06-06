@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '8';
+    const _APP_VER = '9';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -3750,7 +3750,10 @@ function mergeIncomingData(fresh) {
 }
 
 fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-store' })
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
   .then(fresh => {
     const changed = mergeIncomingData(fresh);
     if (changed) {
@@ -3758,9 +3761,13 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
       importGCalEvents();
       renderCards();
       showToast('☁️ 스마트 동기화(pull) 완료');
+    } else {
+      showToast('☁️ 최신 데이터 동기화 완료');
     }
   })
-  .catch(() => {})
+  .catch(err => {
+    showToast('⚠️ 동기화 실패: ' + err.message);
+  })
   .finally(() => {
     _isInitializing = false;
   });

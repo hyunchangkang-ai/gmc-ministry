@@ -1,4 +1,4 @@
-const CACHE = 'gmc-v7';
+const CACHE = 'gmc-v8';
 const STATIC_ASSETS = [
   '/gmc-ministry/Administration/icons/icon-192.png',
   '/gmc-ministry/Administration/icons/icon-512.png',
@@ -19,8 +19,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = e.request.url;
 
-  // Apps Script / 외부 API는 항상 네트워크
-  if (url.includes('script.google.com')) return;
+  // Apps Script / 외부 API는 항상 네트워크 (리다이렉트 도메인 포함)
+  if (url.includes('script.google.com') || url.includes('script.googleusercontent.com')) return;
 
   // HTML 파일은 항상 네트워크 우선, 실패 시에만 캐시
   if (url.endsWith('.html') || url.includes('/gmc-ministry/') && !url.match(/\.(png|jpg|ico|json|js|css)$/)) {

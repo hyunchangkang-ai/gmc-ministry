@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '13';
+    const _APP_VER = '14';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -1239,6 +1239,7 @@
         <option value="none">반복 없음</option>
         <option value="daily">매일</option>
         <option value="weekly">매주 (요일 선택)</option>
+        <option value="monthly">매달</option>
       </select>
     </div>
     <div class="form-group hidden" id="weekdayPickerGroup">
@@ -1986,25 +1987,54 @@ function getWeekData() {
 
 function ensureRecurringTodos(m, weekDates) {
   if (!m.repeatConfig || m.repeatConfig.type === 'none') return false;
-  const activeDays = m.repeatConfig.type === 'daily'
-    ? [0,1,2,3,4,5,6]
-    : (m.repeatConfig.days || []);
   const timeStr  = m.repeatConfig.time || '';
   const timeLabel = timeStr ? `[${timeStr}] ` : '';
   let changed = false;
-  weekDates.forEach(d => {
-    if (!activeDays.includes(d.getDay())) return;
-    const dateStr = fmtYMD(d);
-    const exists = m.todos.some(t =>
-      t.date === dateStr &&
-      t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === m.name.trim()
-    );
-    if (!exists) {
-      m.todos.push({ id: uid(), text: timeLabel + m.name, date: dateStr,
-        time: timeStr, done: false, progress: '', needs: '', isRecurring: true, updatedAt: Date.now() });
-      changed = true;
+
+  if (m.repeatConfig.type === 'monthly') {
+    const baseDateStr = m.oneOffDate || weekDates[0].toISOString().split('T')[0];
+    const baseDay = parseInt(baseDateStr.split('-')[2]);
+
+    const targetDate = weekDates.find(d => d.getDate() === baseDay);
+    if (targetDate) {
+      const dateStr = fmtYMD(targetDate);
+      const exists = m.todos.some(t =>
+        t.date === dateStr &&
+        t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === m.name.trim()
+      );
+      if (!exists) {
+        m.todos.push({
+          id: uid(),
+          text: timeLabel + m.name,
+          date: dateStr,
+          time: timeStr,
+          done: false,
+          progress: '',
+          needs: '',
+          isRecurring: true,
+          updatedAt: Date.now()
+        });
+        changed = true;
+      }
     }
-  });
+  } else {
+    const activeDays = m.repeatConfig.type === 'daily'
+      ? [0,1,2,3,4,5,6]
+      : (m.repeatConfig.days || []);
+    weekDates.forEach(d => {
+      if (!activeDays.includes(d.getDay())) return;
+      const dateStr = fmtYMD(d);
+      const exists = m.todos.some(t =>
+        t.date === dateStr &&
+        t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === m.name.trim()
+      );
+      if (!exists) {
+        m.todos.push({ id: uid(), text: timeLabel + m.name, date: dateStr,
+          time: timeStr, done: false, progress: '', needs: '', isRecurring: true, updatedAt: Date.now() });
+        changed = true;
+      }
+    });
+  }
   return changed;
 }
 

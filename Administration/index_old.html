@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '9';
+    const _APP_VER = '10';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -3755,14 +3755,30 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
     return r.json();
   })
   .then(fresh => {
+    if (fresh && fresh.error) {
+      throw new Error('Server error: ' + fresh.error);
+    }
+
+    // 진단을 위한 카운트 계산
+    const freshWeekKeys = Object.keys(fresh || {}).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+    let totalMins = 0;
+    let totalTodos = 0;
+    freshWeekKeys.forEach(wk => {
+      const mins = fresh[wk].ministries || [];
+      totalMins += mins.length;
+      mins.forEach(m => {
+        totalTodos += (m.todos || []).length;
+      });
+    });
+
     const changed = mergeIncomingData(fresh);
     if (changed) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       importGCalEvents();
       renderCards();
-      showToast('☁️ 스마트 동기화(pull) 완료');
+      showToast(`☁️ 스마트 동기화(pull) 완료 (데이터 ${totalTodos}개 반영)`);
     } else {
-      showToast('☁️ 최신 데이터 동기화 완료');
+      showToast(`☁️ 최신 데이터 동기화 완료 (${freshWeekKeys.length}주차, 사역 ${totalMins}개, 할일 ${totalTodos}개)`);
     }
   })
   .catch(err => {

@@ -9,3 +9,5 @@ ministry_data.json
 *.docx
 *.json
 !manifest.json
+text_sending
+

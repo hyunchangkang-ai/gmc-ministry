@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '10';
+    const _APP_VER = '11';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -1916,8 +1916,14 @@ function dataForSync() {
   return d;
 }
 
+let initialPullCompleted = false;
+
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if (!initialPullCompleted) {
+    console.log("saveData: Skipping cloud push because initial pull is still in progress.");
+    return;
+  }
   try {
     const payload = JSON.stringify(dataForSync());
     fetch(APPS_SCRIPT_URL, {
@@ -3794,6 +3800,7 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
     });
 
     const changed = mergeIncomingData(fresh);
+    initialPullCompleted = true; // 최초 로드 완료 표시 (이후 자동/수동 저장 시 서버 push 활성화)
     if (changed) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       importGCalEvents();
@@ -3805,6 +3812,7 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
     }
   })
   .catch(err => {
+    initialPullCompleted = true; // 에러가 나더라도 편집 저장은 동작하도록 설정
     showToast('⚠️ 동기화 실패: ' + err.message);
   });
 

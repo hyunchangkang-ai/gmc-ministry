@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '11';
+    const _APP_VER = '12';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -2546,19 +2546,54 @@ function cleanupDuplicateTodos() {
   let changed = false;
   Object.values(data).forEach(wk => {
     (wk.ministries || []).forEach(m => {
-      const seen = new Map(); // key: "date|cleanTitle"
-      const deduped = [];
-      m.todos.forEach(t => {
+      const merged = [];
+      (m.todos || []).forEach(t => {
         const clean = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
         const key = `${t.date||''}|${clean}`;
-        if (!seen.has(key)) {
-          seen.set(key, true);
-          deduped.push(t);
+        
+        const existing = merged.find(x => {
+          const xClean = x.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
+          return x.date === t.date && xClean === clean;
+        });
+
+        if (!existing) {
+          merged.push(t);
         } else {
+          // Merge t into existing
+          if (t.done && !existing.done) {
+            existing.done = true;
+            changed = true;
+          }
+          if (t.updatedAt > (existing.updatedAt || 0)) {
+            existing.updatedAt = t.updatedAt;
+            changed = true;
+          }
+          if (t.progress && !existing.progress) {
+            existing.progress = t.progress;
+            changed = true;
+          }
+          if (t.needs && !existing.needs) {
+            existing.needs = t.needs;
+            changed = true;
+          }
+          if (t.category && !existing.category) {
+            existing.category = t.category;
+            changed = true;
+          }
+          if (t.time && !existing.time) {
+            existing.time = t.time;
+            changed = true;
+          }
+          if (t.gcalEventId && t.gcalEventId !== existing.gcalEventId) {
+            if (!existing.gcalEventId || t.updatedAt > (existing.updatedAt || 0) || t.done) {
+              existing.gcalEventId = t.gcalEventId;
+              changed = true;
+            }
+          }
           changed = true;
         }
       });
-      m.todos = deduped;
+      m.todos = merged;
     });
   });
   if (changed) saveData();
@@ -2675,6 +2710,9 @@ function importGCalEvents() {
         needs: '',
         updatedAt: 0,
       });
+      changed = true;
+    } else if (ev.id && existingTodo.gcalEventId !== ev.id) {
+      existingTodo.gcalEventId = ev.id;
       changed = true;
     }
   });
@@ -3741,10 +3779,24 @@ function mergeIncomingData(fresh) {
             // 캘린더 이벤트 단위로 삭제된 항목도 막기
             if (freshT.gcalEventId && data.deletedIds['gcalev:' + gcalBaseId(freshT.gcalEventId)]) return;
 
-            const dup = localM.todos.find(t =>
+            let dup = localM.todos.find(t =>
               t.id === freshT.id ||
               gcalIdMatch(t.gcalEventId, freshT.gcalEventId)
             );
+
+            // [ID 불일치 대비 예외처리]: 제목과 날짜가 완전히 동일한 캘린더 일정이 이미 존재하는 경우
+            if (!dup && freshT.gcalEventId) {
+              const cleanFreshTitle = freshT.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
+              dup = localM.todos.find(t =>
+                t.date === freshT.date &&
+                t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === cleanFreshTitle
+              );
+              if (dup) {
+                // ID를 서버 기준으로 동기화하여 중복 생성을 막고 머지
+                dup.gcalEventId = freshT.gcalEventId;
+                changed = true;
+              }
+            }
 
             if (!dup) {
               localM.todos.push(freshT);

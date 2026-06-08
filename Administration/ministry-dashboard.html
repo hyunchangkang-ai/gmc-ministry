@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '16';
+    const _APP_VER = '17';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -2730,10 +2730,46 @@ function mergeDuplicateCalMinistries() {
     wk.ministries.forEach(m => {
       const key = m.name.trim();
       if (seen[key]) {
-        // 병합 대상: todos 합치고
-        seen[key].todos.push(...m.todos.filter(t =>
-          !seen[key].todos.some(x => x.gcalEventId && x.gcalEventId === t.gcalEventId)
-        ));
+        // 병합 대상: 기존 seen[key].todos와 m.todos를 돌면서 병합
+        (m.todos || []).forEach(t => {
+          const cleanTText = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
+          const existing = seen[key].todos.find(x =>
+            (t.gcalEventId && x.gcalEventId && gcalIdMatch(t.gcalEventId, x.gcalEventId)) ||
+            (t.id === x.id) ||
+            (t.date && t.date === x.date && cleanTText === x.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim())
+          );
+          if (existing) {
+            // 이미 존재하면 병합 (done, progress, needs, gcalEventId, updatedAt 등 최신값 유지)
+            if (t.done && !existing.done) {
+              existing.done = true;
+              changed = true;
+            }
+            if (t.updatedAt > (existing.updatedAt || 0)) {
+              existing.updatedAt = t.updatedAt;
+              if (t.done !== existing.done) {
+                existing.done = t.done;
+                changed = true;
+              }
+            }
+            if (t.progress && !existing.progress) {
+              existing.progress = t.progress;
+              changed = true;
+            }
+            if (t.needs && !existing.needs) {
+              existing.needs = t.needs;
+              changed = true;
+            }
+            if (t.gcalEventId && !existing.gcalEventId) {
+              existing.gcalEventId = t.gcalEventId;
+              changed = true;
+            }
+          } else {
+            // 존재하지 않으면 추가
+            seen[key].todos.push(t);
+            changed = true;
+          }
+        });
+
         // gcalId 보존 (만약 m에 gcalId가 있고 seen[key]에 없으면 seen[key]로 복사)
         if (m.gcalId && !seen[key].gcalId) {
           seen[key].gcalId = m.gcalId;

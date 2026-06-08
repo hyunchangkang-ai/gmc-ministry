@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '14';
+    const _APP_VER = '15';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -2639,8 +2639,19 @@ const CAL_COLORS = {
 };
 
 function mergeDuplicateCalMinistries() {
-  // 같은 calendarName인데 gcalId가 다른 중복 미니스트리를 병합
   let changed = false;
+  // 1. Rename any 'hyunchang.kang@gmcusa.org' calendar ministry to '내 스케줄'
+  Object.values(data).forEach(wk => {
+    if (!wk || typeof wk !== 'object' || !Array.isArray(wk.ministries)) return;
+    wk.ministries.forEach(m => {
+      if (m.gcalId === 'hyunchang.kang@gmcusa.org' && m.name !== '내 스케줄') {
+        m.name = '내 스케줄';
+        changed = true;
+      }
+    });
+  });
+
+  // 2. 같은 calendarName인데 gcalId가 다른 중복 미니스트리를 병합
   Object.values(data).forEach(wk => {
     if (!wk || typeof wk !== 'object' || !Array.isArray(wk.ministries)) return;
     const seen = {}; // name → ministry
@@ -2675,6 +2686,10 @@ function importGCalEvents() {
   window.GCAL_EVENTS.forEach(ev => {
     // 사용자가 삭제한 캘린더 이벤트는 다시 import하지 않음
     if (data.deletedIds['gcalev:' + gcalBaseId(ev.id)]) return;
+
+    if (ev.calendarId === 'hyunchang.kang@gmcusa.org') {
+      ev.calendarName = '내 스케줄';
+    }
 
     const evDate = new Date(ev.date + 'T00:00:00');
     const tue = getTuesdayOfWeek(evDate);

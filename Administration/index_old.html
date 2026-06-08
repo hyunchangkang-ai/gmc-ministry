@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '18';
+    const _APP_VER = '19';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -1136,7 +1136,7 @@
 <div class="app-header">
   <div>
     <h1>✝️ GMC 주간 사역 관리</h1>
-    <div class="subtitle">Global Mission Church · Silver Spring, MD <span style="opacity:0.5;font-size:0.75rem;margin-left:6px;">(v18)</span></div>
+    <div class="subtitle">Global Mission Church · Silver Spring, MD <span style="opacity:0.5;font-size:0.75rem;margin-left:6px;">(v19)</span></div>
   </div>
   <div class="week-nav">
     <button class="nav-btn" id="prevWeek">&#8592;</button>
@@ -3846,10 +3846,39 @@ if (document.readyState === 'loading') {
 // 시작 시 localStorage에만 저장 (빈 데이터로 Apps Script 덮어쓰기 방지)
 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
+function normalizeWeekKey(key) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return key;
+  try {
+    const d = new Date(key);
+    if (!isNaN(d.getTime())) {
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+  } catch(e) {}
+  return key;
+}
+
+function normalizeIncomingData(fresh) {
+  if (!fresh || typeof fresh !== 'object') return fresh;
+  const normalized = {};
+  Object.keys(fresh).forEach(key => {
+    if (key === 'deletedIds') {
+      normalized.deletedIds = fresh.deletedIds;
+    } else {
+      const normKey = normalizeWeekKey(key);
+      normalized[normKey] = fresh[key];
+    }
+  });
+  return normalized;
+}
+
 // 시작 시 Apps Script 데이터를 가져와 병합
 // - localStorage 비어있으면 전체 복원
 // - 데이터 있으면 할 일 단위로 병합 (다른 기기에서 추가된 항목 반영)
 function mergeIncomingData(fresh) {
+  fresh = normalizeIncomingData(fresh);
   if (!fresh || typeof fresh !== 'object') return false;
   const freshWeekKeys = Object.keys(fresh).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
   if (freshWeekKeys.length === 0 && (!fresh.deletedIds || Object.keys(fresh.deletedIds).length === 0)) return false;

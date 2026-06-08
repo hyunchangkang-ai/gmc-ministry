@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '15';
+    const _APP_VER = '16';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -2692,30 +2692,52 @@ const CAL_COLORS = {
 
 function mergeDuplicateCalMinistries() {
   let changed = false;
-  // 1. Rename any 'hyunchang.kang@gmcusa.org' calendar ministry to '내 스케줄'
+  
+  // 1. Normalize name and gcalId for 'hyunchang.kang@gmcusa.org' and spelling variations
   Object.values(data).forEach(wk => {
     if (!wk || typeof wk !== 'object' || !Array.isArray(wk.ministries)) return;
     wk.ministries.forEach(m => {
+      // Normalize spelling '내 스케쥴' -> '내 스케줄'
+      if (m.name === '내 스케쥴') {
+        m.name = '내 스케줄';
+        changed = true;
+      }
+      // If the name is 'hyunchang.kang@gmcusa.org', rename to '내 스케줄' and assign gcalId
+      if (m.name === 'hyunchang.kang@gmcusa.org') {
+        m.name = '내 스케줄';
+        m.gcalId = 'hyunchang.kang@gmcusa.org';
+        changed = true;
+      }
+      // If it has gcalId of the primary calendar, ensure the name is '내 스케줄'
       if (m.gcalId === 'hyunchang.kang@gmcusa.org' && m.name !== '내 스케줄') {
         m.name = '내 스케줄';
+        changed = true;
+      }
+      // If the name is '내 스케줄' and it doesn't have gcalId, assign it
+      if (m.name === '내 스케줄' && !m.gcalId) {
+        m.gcalId = 'hyunchang.kang@gmcusa.org';
         changed = true;
       }
     });
   });
 
-  // 2. 같은 calendarName인데 gcalId가 다른 중복 미니스트리를 병합
+  // 2. 같은 name을 가진 미니스트리 병합 (gcalId 유무 상관없이 통합)
   Object.values(data).forEach(wk => {
     if (!wk || typeof wk !== 'object' || !Array.isArray(wk.ministries)) return;
-    const seen = {}; // name → ministry
+    const seen = {}; // name -> ministry
     const toRemove = [];
+    
     wk.ministries.forEach(m => {
-      if (!m.gcalId) return;
-      const key = m.name;
+      const key = m.name.trim();
       if (seen[key]) {
-        // 중복: todos를 기존에 합치고 제거 목록에 추가
+        // 병합 대상: todos 합치고
         seen[key].todos.push(...m.todos.filter(t =>
           !seen[key].todos.some(x => x.gcalEventId && x.gcalEventId === t.gcalEventId)
         ));
+        // gcalId 보존 (만약 m에 gcalId가 있고 seen[key]에 없으면 seen[key]로 복사)
+        if (m.gcalId && !seen[key].gcalId) {
+          seen[key].gcalId = m.gcalId;
+        }
         toRemove.push(m.id);
         changed = true;
       } else {

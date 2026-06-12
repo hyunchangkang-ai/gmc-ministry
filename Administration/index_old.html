@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#1a3a5c" />
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
-    const _APP_VER = '19';
+    const _APP_VER = '20';
     const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
@@ -1136,7 +1136,7 @@
 <div class="app-header">
   <div>
     <h1>✝️ GMC 주간 사역 관리</h1>
-    <div class="subtitle">Global Mission Church · Silver Spring, MD <span style="opacity:0.5;font-size:0.75rem;margin-left:6px;">(v19)</span></div>
+    <div class="subtitle">Global Mission Church · Silver Spring, MD <span style="opacity:0.5;font-size:0.75rem;margin-left:6px;">(v20)</span></div>
   </div>
   <div class="week-nav">
     <button class="nav-btn" id="prevWeek">&#8592;</button>
@@ -1869,7 +1869,8 @@ function deduplicateMinistries() {
       m.todos = dedupedTodos;
     });
   });
-  if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if (changed) saveData();
+  return changed;
 }
 
 // Apps Script 저장용: 캘린더 자동생성 항목 제외 (셀 용량 50,000자 초과 방지)
@@ -2650,6 +2651,11 @@ function mergeDuplicateCalMinistries() {
         m.name = '내 스케줄';
         changed = true;
       }
+      // Normalize spelling '사역자 스케쥴' -> '사역자 스케줄'
+      if (m.name === '사역자 스케쥴') {
+        m.name = '사역자 스케줄';
+        changed = true;
+      }
       // If the name is 'hyunchang.kang@gmcusa.org', rename to '내 스케줄' and assign gcalId
       if (m.name === 'hyunchang.kang@gmcusa.org') {
         m.name = '내 스케줄';
@@ -2664,6 +2670,26 @@ function mergeDuplicateCalMinistries() {
       // If the name is '내 스케줄' and it doesn't have gcalId, assign it
       if (m.name === '내 스케줄' && !m.gcalId) {
         m.gcalId = 'hyunchang.kang@gmcusa.org';
+        changed = true;
+      }
+
+      // Normalize '사역자 스케줄'
+      if (m.name === '사역자 스케줄' && !m.gcalId) {
+        m.gcalId = 'c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com';
+        changed = true;
+      }
+      if (m.gcalId === 'c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com' && m.name !== '사역자 스케줄') {
+        m.name = '사역자 스케줄';
+        changed = true;
+      }
+
+      // Normalize 'GMC OFFICE'
+      if (m.name === 'GMC OFFICE' && !m.gcalId) {
+        m.gcalId = 'office@gmcusa.org';
+        changed = true;
+      }
+      if (m.gcalId === 'office@gmcusa.org' && m.name !== 'GMC OFFICE') {
+        m.name = 'GMC OFFICE';
         changed = true;
       }
     });
@@ -2733,6 +2759,7 @@ function mergeDuplicateCalMinistries() {
     }
   });
   if (changed) saveData();
+  return changed;
 }
 
 function importGCalEvents() {
@@ -2747,7 +2774,14 @@ function importGCalEvents() {
 
     if (ev.calendarId === 'hyunchang.kang@gmcusa.org') {
       ev.calendarName = '내 스케줄';
+    } else if (ev.calendarId === 'c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com') {
+      ev.calendarName = '사역자 스케줄';
+    } else if (ev.calendarId === 'office@gmcusa.org') {
+      ev.calendarName = 'GMC OFFICE';
     }
+
+    if (ev.calendarName === '내 스케쥴') ev.calendarName = '내 스케줄';
+    if (ev.calendarName === '사역자 스케쥴') ev.calendarName = '사역자 스케줄';
 
     const evDate = new Date(ev.date + 'T00:00:00');
     const tue = getTuesdayOfWeek(evDate);
@@ -2771,7 +2805,7 @@ function importGCalEvents() {
       if (foundM) {
         targetMinistryName = foundM.name;
         targetMinistryColor = foundM.color;
-        isCalendarOnly = !foundM.gcalId; // GCal 계정 연동 사역이 아니면 일반 커스텀 사역임
+        isCalendarOnly = !!foundM.gcalId; // GCal 계정 연동 사역이면 일반 캘린더 연동 사역임
         foundInDb = true;
         break;
       }
@@ -4033,6 +4067,13 @@ function mergeIncomingData(fresh) {
     }
   });
 
+  try {
+    if (mergeDuplicateCalMinistries()) changed = true;
+  } catch(e) { console.error('mergeDuplicateCalMinistries in merge:', e); }
+  try {
+    if (deduplicateMinistries()) changed = true;
+  } catch(e) { console.error('deduplicateMinistries in merge:', e); }
+
   return changed;
 }
 
@@ -4060,7 +4101,7 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
 
     const changed = mergeIncomingData(fresh);
     if (changed) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      saveData();
       importGCalEvents();
       renderCards();
       showToast(`☁️ 스마트 동기화(pull) 완료 (데이터 ${totalTodos}개 반영)`);

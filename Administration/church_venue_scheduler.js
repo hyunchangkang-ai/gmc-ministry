@@ -130,6 +130,14 @@ function processLatestSubmissions() {
     let isDuplicate = false;
     let isConflict = false;
     
+    const taskSlots = getDateTimeSlots(dateTimeStr, timestamp);
+    if (taskSlots.length === 0) {
+      sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_ERROR);
+      sheet.getRange(idx, COL_STATUS + 1).setBackground("#f8cbad"); // 연한 주황색(오류) 표시
+      Logger.log(`[오류] ${idx}번 행 (${name}님, ${room}호): 날짜/시간 정보를 파싱할 수 없습니다.`);
+      continue;
+    }
+    
     // 기존 신청 목록과 비교
     for (let i = 1; i < currentSheetData.length; i++) {
       // 본인 행은 비교 대상에서 제외
@@ -152,20 +160,26 @@ function processLatestSubmissions() {
       }
       
       const otherRoom = String(currentSheetData[i][COL_ROOM]).trim();
-      const otherDateTimeStr = String(currentSheetData[i][COL_DATETIME]).trim();
       
-      // 공백을 모두 제거한 후 대소문자 구분 없이 교실 번호와 사용 일자/시간 비교
-      if (cleanStr(otherRoom) === cleanStr(room) && cleanStr(otherDateTimeStr) === cleanStr(dateTimeStr)) {
+      // 방 번호가 다르면 충돌 가능성 없음
+      if (cleanStr(otherRoom) !== cleanStr(room)) {
+        continue;
+      }
+      
+      const otherDateTimeStr = String(currentSheetData[i][COL_DATETIME]).trim();
+      const otherSlots = getDateTimeSlots(otherDateTimeStr, otherTimestamp);
+      
+      // 실제 예약 시간대 겹침 확인
+      if (doSlotsConflict(taskSlots, otherSlots)) {
         const otherName = String(currentSheetData[i][COL_NAME]).trim();
         
         if (otherName === name) {
-          // [중복 신청] 동일한 사람, 동일한 날짜/시간, 동일한 교실인 경우
+          // [중복 신청] 동일한 사람, 일정 겹침, 동일한 교실인 경우
           isDuplicate = true;
           break; // 중복이 감지되면 즉시 루프 중단 (중복 우선 적용)
         } else {
-          // [일정 충돌] 다른 사람, 동일한 날짜/시간, 동일한 교실인 경우
+          // [일정 충돌] 다른 사람, 일정 겹침, 동일한 교실인 경우
           isConflict = true;
-          // 다른 중복 건이 있을 수도 있으므로 루프를 계속 돌려 중복 여부까지 최종 확인합니다.
         }
       }
     }
@@ -241,7 +255,7 @@ GMC 행정실 드림
 본 메일은 구글 스프레드시트 장소 예약 시스템에서 자동으로 발송되었습니다.`;
 
   try {
-    MailApp.sendEmail(email, subject, body);
+    MailApp.sendEmail(email, subject, body, { cc: "office@gmcusa.org" });
     Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 예약 승인 확인 메일을 발송하였습니다.`);
   } catch (error) {
     Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
@@ -270,7 +284,7 @@ GMC 행정실 드림
 본 메일은 구글 스프레드시트 장소 예약 시스템에서 자동으로 발송되었습니다.`;
 
   try {
-    MailApp.sendEmail(email, subject, body);
+    MailApp.sendEmail(email, subject, body, { cc: "office@gmcusa.org" });
     Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 일정 충돌 취소 메일을 발송하였습니다.`);
   } catch (error) {
     Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
@@ -356,7 +370,7 @@ function parseDateFromText(text, defaultDate) {
 function parseTimeFromText(text) {
   if (!text) return null;
   
-  const normalized = text.toLowerCase().replace(/\s+/g, ""); // 모든 공백 제거하여 표준화
+  const normalized = text.toLowerCase().replace(/\s+/g, " "); // 모든 공백을 단일 공백으로 표준화
   
   // 오전/오후 및 AM/PM 보정 오프셋 계산기
   const getAmPmOffset = (subText) => {
@@ -455,7 +469,166 @@ function parseTimeFromText(text) {
 }
 
 /**
+ * 성도가 입력한 다양한 텍스트에서 날짜 목록을 지능적으로 파싱하여 반환합니다.
+ */
+function parseDatesFromText(text, referenceDate) {
+  const now = referenceDate || new Date();
+  const currentYear = now.getFullYear();
+  const dates = [];
+
+  // A. 날짜 범위 패턴 매칭: 예, 6/21~7/5, 2026.6.21 ~ 2026.7.5, 6/21-7/5
+  let rangeMatch = text.match(/(\d{1,2})[./](\d{1,2})\s*[-~]\s*(\d{1,2})[./](\d{1,2})/);
+  if (!rangeMatch) {
+    rangeMatch = text.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*[-~]\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+  }
+  if (!rangeMatch) {
+    rangeMatch = text.match(/(\d{4})[-./](\d{1,2})[-./](\d{1,2})\s*[-~]\s*(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  }
+  
+  if (rangeMatch) {
+    let startYear = currentYear, endYear = currentYear;
+    let startMonth, startDay, endMonth, endDay;
+    
+    if (rangeMatch.length === 7) {
+      startYear = parseInt(rangeMatch[1]);
+      startMonth = parseInt(rangeMatch[2]);
+      startDay = parseInt(rangeMatch[3]);
+      endYear = parseInt(rangeMatch[4]);
+      endMonth = parseInt(rangeMatch[5]);
+      endDay = parseInt(rangeMatch[6]);
+    } else {
+      startMonth = parseInt(rangeMatch[1]);
+      startDay = parseInt(rangeMatch[2]);
+      endMonth = parseInt(rangeMatch[3]);
+      endDay = parseInt(rangeMatch[4]);
+      
+      // 연도 경계 처리 (예: 12/30 ~ 1/5)
+      if (endMonth < startMonth) {
+        endYear = startYear + 1;
+      }
+    }
+    
+    const startDate = new Date(startYear, startMonth - 1, startDay);
+    const endDate = new Date(endYear, endMonth - 1, endDay);
+    
+    const normalized = text.toLowerCase().replace(/\s+/g, "");
+    
+    // 요일 검출
+    const weekdaysKo = ["일", "월", "화", "수", "목", "금", "토"];
+    const weekdaysEn = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    let targetDays = [];
+    
+    if (normalized.includes("주일") || normalized.includes("일요일") || normalized.includes("일요")) {
+      targetDays.push(0);
+    }
+    for (let d = 1; d < 7; d++) {
+      if (normalized.includes(weekdaysKo[d] + "요일") || normalized.includes(weekdaysKo[d] + "요")) {
+        targetDays.push(d);
+      }
+    }
+    if (targetDays.length === 0) {
+      for (let d = 0; d < 7; d++) {
+        if (normalized.includes(weekdaysEn[d])) {
+          targetDays.push(d);
+          break;
+        }
+      }
+    }
+    
+    // 범위 내 날짜 루프 생성
+    let cur = new Date(startDate.getTime());
+    let safetyCounter = 0;
+    while (cur <= endDate && safetyCounter < 366) {
+      safetyCounter++;
+      if (targetDays.length === 0 || targetDays.includes(cur.getDay())) {
+        dates.push(new Date(cur.getTime()));
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+    
+    if (dates.length > 0) {
+      return dates;
+    }
+  }
+
+  // B. 쉼표 등으로 구분된 여러 개별 날짜 매칭
+  const monthDayKoRegex = /(\d{1,2})\s*월\s*(\d{1,2})\s*일/g;
+  let matchKo;
+  while ((matchKo = monthDayKoRegex.exec(text)) !== null) {
+    const month = parseInt(matchKo[1]);
+    const day = parseInt(matchKo[2]);
+    dates.push(new Date(currentYear, month - 1, day));
+  }
+  
+  const dateRegex = /\b(\d{1,2})[\/\.](\d{1,2})\b/g;
+  let matchDate;
+  while ((matchDate = dateRegex.exec(text)) !== null) {
+    const month = parseInt(matchDate[1]);
+    const day = parseInt(matchDate[2]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      const alreadyAdded = dates.some(d => d.getMonth() === month - 1 && d.getDate() === day);
+      if (!alreadyAdded) {
+        dates.push(new Date(currentYear, month - 1, day));
+      }
+    }
+  }
+  
+  // C. 검출된 날짜가 없을 경우, 단일 날짜 파싱 fallback 실행
+  if (dates.length === 0) {
+    const singleDate = parseDateFromText(text, now);
+    if (singleDate) {
+      dates.push(singleDate);
+    }
+  }
+  
+  return dates;
+}
+
+/**
+ * 날짜 문자열과 타임스탬프를 이용해 시작/종료 일시를 가진 Slot 목록을 생성합니다.
+ */
+function getDateTimeSlots(dateTimeStr, timestamp) {
+  const refDate = timestamp ? new Date(timestamp) : new Date();
+  const dates = parseDatesFromText(dateTimeStr, refDate);
+  const time = parseTimeFromText(dateTimeStr);
+  
+  const slots = [];
+  for (let date of dates) {
+    const start = new Date(date.getTime());
+    const end = new Date(date.getTime());
+    
+    if (time) {
+      start.setHours(time.startHour, time.startMinute, 0, 0);
+      end.setHours(time.endHour, time.endMinute, 0, 0);
+      if (end <= start) {
+        end.setTime(start.getTime() + (2 * 60 * 60 * 1000));
+      }
+    } else {
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    }
+    slots.push({ start: start, end: end, hasTime: !!time });
+  }
+  return slots;
+}
+
+/**
+ * 두 Slot 목록 간에 겹치는 시간대가 있는지 확인합니다.
+ */
+function doSlotsConflict(slotsA, slotsB) {
+  for (let slotA of slotsA) {
+    for (let slotB of slotsB) {
+      if (slotA.start < slotB.end && slotB.start < slotA.end) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * 파싱된 정보와 신청서 원본 데이터를 종합하여 Google Calendar에 일정을 생성합니다.
+ * 여러 날짜 슬롯이 검출되는 경우 루프를 돌며 개별 일정을 생성합니다.
  */
 function addToGoogleCalendar(room, name, dateTimeStr, purpose, phone, participants, equipment) {
   try {
@@ -465,9 +638,12 @@ function addToGoogleCalendar(room, name, dateTimeStr, purpose, phone, participan
       return false;
     }
     
-    // G열에서 날짜와 시간 파싱 시도 (기준일로 오늘날짜 전달)
-    const parsedDate = parseDateFromText(dateTimeStr, new Date());
-    const parsedTime = parseTimeFromText(dateTimeStr);
+    // G열에서 모든 날짜와 시간 슬롯 파싱
+    const slots = getDateTimeSlots(dateTimeStr, new Date());
+    if (slots.length === 0) {
+      Logger.log(`[캘린더 에러] 날짜/시간 형식을 분석할 수 없습니다. (${dateTimeStr})`);
+      return false;
+    }
     
     // 일정 제목 포맷: [101호] 모임 목적
     const title = `[${room}] ${purpose}`;
@@ -481,30 +657,22 @@ function addToGoogleCalendar(room, name, dateTimeStr, purpose, phone, participan
 ■ 시스템 승인 시각: ${new Date().toLocaleString()}
 `;
     
-    let event;
-    if (parsedTime) {
-      // 시작 일시 생성
-      const start = new Date(parsedDate.getTime());
-      start.setHours(parsedTime.startHour, parsedTime.startMinute, 0, 0);
-      
-      // 종료 일시 생성
-      const end = new Date(parsedDate.getTime());
-      end.setHours(parsedTime.endHour, parsedTime.endMinute, 0, 0);
-      
-      // 시간 논리적 오류 보정 (종료 시간이 시작보다 앞서면 2시간 후로 조정)
-      if (end <= start) {
-        end.setTime(start.getTime() + (2 * 60 * 60 * 1000));
+    let createdCount = 0;
+    for (let slot of slots) {
+      let event;
+      if (slot.hasTime) {
+        event = calendar.createEvent(title, slot.start, slot.end, { description: description });
+        Logger.log(`[일정 생성 완료] 시간 예약 일정: ${title} (${slot.start.toLocaleString()} ~ ${slot.end.toLocaleString()})`);
+      } else {
+        // 시간 추출 실패 시 하루 종일 일정(All-day Event)으로 등록하여 가독성 유지
+        event = calendar.createAllDayEvent(title, slot.start, { description: description });
+        Logger.log(`[일정 생성 완료] 하루 종일 예약 일정: ${title} (날짜: ${slot.start.toLocaleDateString()})`);
       }
-      
-      event = calendar.createEvent(title, start, end, { description: description });
-      Logger.log(`[일정 생성 완료] 시간 예약 일정: ${title} (${start.toLocaleString()} ~ ${end.toLocaleString()})`);
-    } else {
-      // 시간 추출 실패 시 하루 종일 일정(All-day Event)으로 등록하여 가독성 유지
-      event = calendar.createAllDayEvent(title, parsedDate, { description: description });
-      Logger.log(`[일정 생성 완료] 하루 종일 예약 일정: ${title} (날짜: ${parsedDate.toLocaleDateString()})`);
+      if (event) createdCount++;
     }
     
-    return event ? true : false;
+    // 모든 슬롯에 대한 일정이 정상적으로 생성되었는지 확인
+    return createdCount === slots.length;
   } catch (error) {
     Logger.log("[캘린더 등록 예외 오류]: " + error.toString());
     return false;

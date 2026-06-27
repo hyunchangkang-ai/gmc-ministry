@@ -1054,6 +1054,9 @@ function loadData() {
   catch(e) { return {}; }
 }
 function saveData(data) {
+  if (data && typeof data === 'object') {
+    data._updatedAt = Date.now();
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 function getEventData(id) {

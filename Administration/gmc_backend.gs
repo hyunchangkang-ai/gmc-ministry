@@ -420,7 +420,7 @@ function updateDatabase(ss, data) {
   }
 }
 
-// ── 구글 캘린더 이벤트 반환 (이번 주 화요일~다음 월요일) ───────────────────
+// ── 구글 캘린더 이벤트 반환 (3주 범위: 지난주 화요일~다음주 월요일) ───────────────────
 function getCalendarEvents() {
   try {
     const CALENDARS = [
@@ -438,9 +438,14 @@ function getCalendarEvents() {
     thisTuesday.setDate(today.getDate() - daysToTue);
     thisTuesday.setHours(0, 0, 0, 0);
 
-    const nextMonday = new Date(thisTuesday);
-    nextMonday.setDate(thisTuesday.getDate() + 6);
-    nextMonday.setHours(23, 59, 59, 999);
+    // 3주 범위 계산: 지난주 화요일 ~ 다음주 월요일
+    const startRange = new Date(thisTuesday);
+    startRange.setDate(thisTuesday.getDate() - 7);
+    startRange.setHours(0, 0, 0, 0);
+
+    const endRange = new Date(thisTuesday);
+    endRange.setDate(thisTuesday.getDate() + 13);
+    endRange.setHours(23, 59, 59, 999);
 
     const results = [];
 
@@ -451,7 +456,7 @@ function getCalendarEvents() {
       } catch (e) { return; }
       if (!calendar) return;
 
-      const events = calendar.getEvents(thisTuesday, nextMonday);
+      const events = calendar.getEvents(startRange, endRange);
       events.forEach(ev => {
         const start = ev.getStartTime();
         const isAllDay = ev.isAllDayEvent();

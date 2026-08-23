@@ -774,3 +774,25 @@ function getTuesdayForDate(dateStr) {
   const dd = String(tue.getDate()).padStart(2, '0');
   return yy + "-" + mm + "-" + dd;
 }
+
+// ── 매일 아침 7시에 실행되는 트리거 생성 헬퍼 함수 ──────────────────────────────
+function setupGmailSyncTrigger() {
+  const functionName = 'checkGmailAndExtractTasks';
+  const triggers = ScriptApp.getProjectTriggers();
+  
+  // 기존 동일 함수에 대한 트리거가 있다면 중복 제거
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === functionName) {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  
+  // 매일 아침 7시 ~ 8시 사이 실행 트리거 생성 (Google 제한으로 1시간 윈도우 발생)
+  ScriptApp.newTrigger(functionName)
+    .timeBased()
+    .everyDays(1)
+    .atHour(7)
+    .create();
+  
+  Logger.log("[Gmail Sync] 매일 아침 7시 자동 실행 트리거가 성공적으로 설정되었습니다.");
+}

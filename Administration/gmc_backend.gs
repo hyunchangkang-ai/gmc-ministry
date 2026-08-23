@@ -555,3 +555,222 @@ function getPrevWeekReport() {
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
+
+// ── Gmail 연동: 메일을 분석하여 '내 스케줄'에 할 일 자동 추가 ───────────────────────
+function checkGmailAndExtractTasks() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
+  if (!apiKey) {
+    Logger.log("[Gmail Sync] 에러: Script Properties에 GEMINI_API_KEY가 설정되어 있지 않습니다.");
+    return;
+  }
+
+  let label = GmailApp.getUserLabelByName("gmc-processed");
+  if (!label) {
+    label = GmailApp.createLabel("gmc-processed");
+  }
+
+  // inbox에 있고 gmc-processed 라벨이 없으며 최근 7일 내에 수신된 이메일 검색 (최대 20개 스레드)
+  const threads = GmailApp.search("in:inbox -label:gmc-processed newer_than:7d", 0, 20);
+  if (threads.length === 0) {
+    Logger.log("[Gmail Sync] 분석할 새 이메일이 없습니다.");
+    return;
+  }
+
+  Logger.log("[Gmail Sync] 분석할 이메일 스레드 발견: " + threads.length + "개");
+
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const dataSheet = ss.getSheetByName('사역데이터');
+  const values = dataSheet.getDataRange().getValues();
+  
+  // 1. 기존 사역 데이터 로드
+  const data = {};
+  for (let i = 1; i < values.length; i++) {
+    const weekKey = String(values[i][0]).trim();
+    const jsonStr = String(values[i][1]).trim();
+    if (weekKey && jsonStr) {
+      try {
+        data[weekKey] = JSON.parse(jsonStr);
+      } catch(e) {}
+    }
+  }
+
+  let changed = false;
+
+  threads.forEach(thread => {
+    const messages = thread.getMessages();
+    if (messages.length === 0) return;
+
+    // 마지막 메시지(가장 최신 메일) 분석
+    const lastMsg = messages[messages.length - 1];
+    const subject = lastMsg.getSubject();
+    const body = lastMsg.getPlainBody();
+    const date = lastMsg.getDate();
+
+    // 이메일 수신 날짜를 기준 날짜 문자열로 변환 (Gemini에게 상대 시간 계산의 기준점으로 제공)
+    const yy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const emailDateStr = yy + "-" + mm + "-" + dd;
+
+    Logger.log("[Gmail Sync] 이메일 분석 중: Subject: '" + subject + "', Date: " + emailDateStr);
+
+    const tasks = callGeminiAPI(apiKey, subject, body, emailDateStr);
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      Logger.log("[Gmail Sync] 추출된 할 일: " + tasks.length + "개");
+      
+      tasks.forEach(task => {
+        if (!task.text || !task.date) return;
+
+        // 주차 키 계산 (Tuesday)
+        const weekKey = getTuesdayForDate(task.date);
+        
+        if (!data[weekKey]) {
+          data[weekKey] = { ministries: [] };
+        }
+        const wk = data[weekKey];
+
+        // '내 스케줄' 카드 찾기
+        let mySchedule = wk.ministries.find(m => m.gcalId === 'hyunchang.kang@gmcusa.org' || m.name === '내 스케줄');
+        if (!mySchedule) {
+          const stableId = 'gcalm_' + weekKey + '_hyunchang_kang_gmcusa_org';
+          mySchedule = {
+            id: stableId,
+            gcalId: 'hyunchang.kang@gmcusa.org',
+            name: '내 스케줄',
+            owner: '',
+            color: '#1a3a5c',
+            status: 's-planning',
+            todos: [],
+            progress: '',
+            needs: '',
+            pinned: false
+          };
+          wk.ministries.push(mySchedule);
+        }
+
+        // 중복 방지 검사 (동일 날짜 및 텍스트)
+        const cleanText = task.text.trim();
+        const exists = mySchedule.todos.some(t => 
+          t.date === task.date && 
+          (t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim() === cleanText)
+        );
+
+        if (!exists) {
+          function uid() {
+            return Math.random().toString(36).substring(2, 11);
+          }
+          const timeLabel = task.time ? `[${task.time}] ` : '';
+          mySchedule.todos.push({
+            id: 'gmail_' + uid(),
+            text: timeLabel + cleanText,
+            date: task.date,
+            time: task.time || '',
+            done: false,
+            progress: '',
+            needs: '',
+            category: task.category || 'other',
+            updatedAt: Date.now()
+          });
+          changed = true;
+          Logger.log("[Gmail Sync] 할 일 추가 완료: " + cleanText + " (날짜: " + task.date + ")");
+        }
+      });
+    }
+
+    // 분석 완료 후 중복 처리 방지를 위해 gmc-processed 라벨 부착
+    thread.addLabel(label);
+  });
+
+  // 변경 사항이 있는 경우에만 전체 시트 갱신
+  if (changed) {
+    dataSheet.clearContents();
+    const rows = [['주차', '데이터']];
+    Object.keys(data).sort().forEach(weekKey => {
+      rows.push([weekKey, JSON.stringify(data[weekKey])]);
+    });
+    if (rows.length > 1) {
+      dataSheet.getRange(1, 1, rows.length, 2).setValues(rows);
+    }
+    
+    updateTodoSheet(ss, data);
+    updateDatabase(ss, data);
+    Logger.log("[Gmail Sync] 최종 변경 데이터를 사역데이터 및 누적 시트에 동기화 완료했습니다.");
+  } else {
+    Logger.log("[Gmail Sync] 추가된 할 일이 없어 시트 업데이트를 건너뜁니다.");
+  }
+}
+
+// ── Gemini API 호출을 통해 할 일 추출 ──────────────────────────────────────────
+function callGeminiAPI(apiKey, subject, body, emailDateStr) {
+  const model = "gemini-1.5-flash";
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey;
+  
+  const systemPrompt = "You are a professional secretary for Pastor Hyunchang Kang. Extract actionable tasks (to-do items) that he needs to perform based on the email content. " +
+                       "Analyze the email context carefully. " +
+                       "Return ONLY a valid JSON array of tasks (no markdown block fences, no prose). " +
+                       "If there are no tasks for him to perform, return an empty JSON array: []. " +
+                       "The JSON schema must be an array of objects, where each object has:\n" +
+                       "- text: a clear, concise Korean summary of the task.\n" +
+                       "- date: the date when this task needs to be done, in 'YYYY-MM-DD' format. Use the email's context and the current reference date (" + emailDateStr + ") to resolve relative terms like '내일' (tomorrow), '이번주 목요일' (this Thursday), etc. If no specific date is mentioned, use today's date (" + emailDateStr + ").\n" +
+                       "- time: time of the event in 'HH:MM' format if mentioned, otherwise ''.\n" +
+                       "- category: choose the best category key from: worship, sermon, disciple, cell, mission, newmember, meeting, admin, pastoral, evangelism, fellowship, facility, shortmission, intercession, other.";
+
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: systemPrompt + "\n\nEmail to analyze:\nEmail Date: " + emailDateStr + "\nSubject: " + subject + "\nBody:\n" + body }
+        ]
+      }
+    ],
+    generationConfig: {
+      responseMimeType: "application/json"
+    }
+  };
+
+  const options = {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const code = response.getResponseCode();
+    if (code !== 200) {
+      Logger.log("[Gmail Sync] Gemini API 호출 실패: Status " + code + ", Response: " + response.getContentText());
+      return [];
+    }
+
+    let text = JSON.parse(response.getContentText()).candidates[0].content.parts[0].text.trim();
+    // 마크다운 펜스 제거 서포트
+    if (text.startsWith("```json")) {
+      text = text.substring(7);
+    }
+    if (text.endsWith("```")) {
+      text = text.substring(0, text.length - 3);
+    }
+    text = text.trim();
+    
+    return JSON.parse(text);
+  } catch (e) {
+    Logger.log("[Gmail Sync] Gemini 응답 파싱 에러: " + e.toString());
+    return [];
+  }
+}
+
+// ── 입력된 YYYY-MM-DD 날짜에 해당하는 주차(화요일) 날짜 구하기 ───────────────────
+function getTuesdayForDate(dateStr) {
+  const parts = dateStr.split('-');
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
+  const day = d.getDay(); // 0=일, 1=월, 2=화, ...
+  const daysToTue = (day === 0) ? 5 : (day === 1) ? 6 : (day - 2);
+  const tue = new Date(d);
+  tue.setDate(d.getDate() - daysToTue);
+  
+  const yy = tue.getFullYear();
+  const mm = String(tue.getMonth() + 1).padStart(2, '0');
+  const dd = String(tue.getDate()).padStart(2, '0');
+  return yy + "-" + mm + "-" + dd;
+}

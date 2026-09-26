@@ -9,5 +9,58 @@ ministry_data.json
 *.docx
 *.json
 !manifest.json
-text_sending
+.DS_Store
+__pycache__/
+*.pyc
 
+# 비공개/개인정보 — 절대 GitHub에 올리지 않음
+.env
+교적사진_*
+교적부*
+교인정보*
+*.HEIC
+
+# 로컬 도구 설정
+.claude/
+.codex/
+.vscode/
+
+# ~/Claude 에서 옮겨온 개인 작업 파일
+logos_*
+logos-agent
+artifact_*
+*_AGENTS.md
+
+# 대용량 주보 보관본 (2005-2007 및 최근 주보는 기존대로 추적)
+bulletin_2008_*
+bulletin_2009_*
+bulletin_2010_*
+bulletin_2011_*
+bulletin_2012_*
+bulletin_2013_*
+bulletin_2014_*
+bulletin_2015_*
+bulletin_2016_*
+bulletin_2017_*
+bulletin_2018_*
+bulletin_2019_*
+bulletin_2020_*
+bulletin_2021_*
+bulletin_2022_*
+bulletin_2023_*
+bulletin_2024_*
+bulletin_2025_*
+
+# 기존에 추적하지 않던 로컬 파일 (정리 전과 동일하게 유지)
+temp.csv
+temp_report.csv
+church_history_for_homepage.csv
+church_history_수정본.xlsx
+church_history_원본.xlsx
+run_sync.sh
+scratch_test_dedup.js
+smallgroup_attendance_report.md
+
+# 기존에 추적 중이던 파일
+!gmc_backend.gs
+/-

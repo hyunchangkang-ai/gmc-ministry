@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GMC 주간 사역 관리</title>
-  <link rel="manifest" href="/gmc-ministry/Administration/manifest.json" />
-  <link rel="apple-touch-icon" href="/gmc-ministry/Administration/icons/apple-touch-icon.png" />
+  <link rel="manifest" href="/gmc-ministry/manifest.json" />
+  <link rel="apple-touch-icon" href="/gmc-ministry/apple-touch-icon.png" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -14,7 +14,7 @@
   <script>
     // 앱 버전이 바뀌면 서비스 워커 초기화 후 새로고침
     const _APP_VER = '20';
-    const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/Administration/sw.js' : 'sw.js';
+    const swPath = location.pathname.includes('/gmc-ministry') ? '/gmc-ministry/sw.js' : 'sw.js';
     if (localStorage.getItem('_appVer') !== _APP_VER) {
       localStorage.setItem('_appVer', _APP_VER);
       if ('caches' in window) caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k))));
@@ -31,1036 +31,260 @@
   <!-- GCAL_DATA_START -->
   <script>window.GCAL_EVENTS = [
   {
-    "id": "gcal_l8disdh280p99sf2gpl646k8n4",
+    "id": "gcal__64q32chn6gq48b9h84oj6b9k6p1jeba260o3iba284q46dq66t1j8gpp68_20260519T130000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-11",
-    "time": "06:00",
-    "title": "새벽기도회 설교 - 강현창"
-  },
-  {
-    "id": "gcal__64q32chn6gq48b9h84oj6b9k6p1jeba260o3iba284q46dq66t1j8gpp68_20260811T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-11",
+    "date": "2026-05-19",
     "time": "09:00",
     "title": "Office Hour"
   },
   {
-    "id": "gcal_d1nonednf5bg3jgdpks3ng8rdc",
+    "id": "gcal__60ok8di26oo36ba18kq30b9k852k6b9p68ok6b9j8csjie238gs36ci58g_20260520T130000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-11",
-    "time": "09:00",
-    "title": "교회 사무실 컴퓨터 문제 해결"
-  },
-  {
-    "id": "gcal_qs2b7qprpn502e1jcghlhqhshg",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-11",
-    "time": "09:15",
-    "title": "교회 사무실 문서 및 비품 정리"
-  },
-  {
-    "id": "gcal_93dasvmh7sip80665s6umfo9c4",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-11",
-    "time": "11:00",
-    "title": "수요예배 설교 준비"
-  },
-  {
-    "id": "gcal_m0pjpdmj2b5hp5r70b76l4opqo",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-11",
-    "time": "11:30",
-    "title": "전교인 피크닉 배너 주문"
-  },
-  {
-    "id": "gcal_48bvt6biup8rlt33lv89p7l430",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-11",
-    "time": "14:00",
-    "title": "한태수 선교사님 컴퓨터 문제 해결"
-  },
-  {
-    "id": "gcal_khcr8e2ddbfmqeitohhfhk6do8",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-12",
-    "time": "06:00",
-    "title": "새벽기도회 참석"
-  },
-  {
-    "id": "gcal_rgh7mlp2i4322ar1kd91ie09ko",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-12",
-    "time": "07:45",
-    "title": "수요예배 설교 준비"
-  },
-  {
-    "id": "gcal__60ok8di26oo36ba18kq30b9k852k6b9p68ok6b9j8csjie238gs36ci58g_20260812T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-12",
+    "date": "2026-05-20",
     "time": "09:00",
     "title": "Office Hour"
   },
   {
-    "id": "gcal_l09sdb1npfo8egm580c01ujqm4",
+    "id": "gcal_6cu4m2331u68uq820c5nk3obto",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-12",
+    "date": "2026-05-20",
     "time": "10:00",
-    "title": "수요예배 설교 - 강현창"
+    "title": "수요예배 - 찬양 인도 (강현창)"
   },
   {
-    "id": "gcal_ghpeh6ugikp37lv9ok3l9b2rv4",
+    "id": "gcal__6sojgg9l6l330ba26gsj4b9k651jgb9o8go4cb9m6oqkce9j6l148e1o8g",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-12",
-    "time": "12:00",
-    "title": "박찬일 목사님 안수 증명 레터 수정"
-  },
-  {
-    "id": "gcal_el9h7ud8s5q14e0nsb2t1cqa08",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-12",
-    "time": "13:00",
-    "title": "여성제자반 가을학기 계획 및 교재 검색"
-  },
-  {
-    "id": "gcal_egmcast0vued4kneen5qc7gl0s",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-12",
-    "time": "19:00",
-    "title": "말씀 나눔 - 정준호/정윤주 집사"
-  },
-  {
-    "id": "gcal__74skag9j7133cba66cojab9k70q4aba18cs3ib9l6kqjahhi6t2k6d1n8k_20260813T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-13",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal_jgv46tckd28i8kvqrenj1phndg",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-13",
+    "date": "2026-05-21",
     "time": "10:00",
-    "title": "담임목사님과 면담"
+    "title": "Ticket: Montgomery College Commencement Ceremony"
   },
   {
-    "id": "gcal_pa7gfdpcu27almgmvsvhapnc80",
+    "id": "gcal__74sk2d1p6h0k8b9p60s4ab9k6p2kcba26t23iba1710jic9j6oo3ada26g_20260521T180000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-13",
-    "time": "12:00",
-    "title": "다니엘 중보기도 6조 모임"
-  },
-  {
-    "id": "gcal__74sk2d1p6h0k8b9p60s4ab9k6p2kcba26t23iba1710jic9j6oo3ada26g_20260813T180000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-13",
+    "date": "2026-05-21",
     "time": "14:00",
     "title": "96기 다니엘 중보기도사역 (다음 - 민요환 집사님)"
   },
   {
-    "id": "gcal_lkvn2npfk8q5scgu17k0v2t9fk",
+    "id": "gcal_1shis96j4m9c64heclvjt391ho",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-13",
-    "time": "16:30",
-    "title": "김에스더 사모님 오퍼 레터 준비 및 전달"
-  },
-  {
-    "id": "gcal_ucvcvvv95lo21vhd8t4vgjr6g8",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-13",
-    "time": "20:00",
-    "title": "새벽기도회 설교 준비"
-  },
-  {
-    "id": "gcal_qqe4mbmrpvha2lc216qbbuk4is",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-14",
+    "date": "2026-05-22",
     "time": "06:00",
-    "title": "새벽기도회 설교 - 강현창"
+    "title": "새벽기도회 (강현창)"
   },
   {
-    "id": "gcal_q096okh6at80tqq5990peapvq8",
+    "id": "gcal__64q30e9m892jgb9g68sjgb9k69134ba27113gb9h6ssk4chm70r38e9g60_20260522T130000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-14",
-    "time": "08:00",
-    "title": "여성제자반 가을학기 교재 선정 및 주문"
-  },
-  {
-    "id": "gcal_o7jriqnn3f18al3056p46l74og",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-14",
-    "time": "08:30",
-    "title": "김에스더 사모님 첫 출근 서류 준비"
-  },
-  {
-    "id": "gcal_0uivj4glp1703gimjf8qm88ob8",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-14",
-    "time": "09:00",
-    "title": "교역자 회의"
-  },
-  {
-    "id": "gcal__64q30e9m892jgb9g68sjgb9k69134ba27113gb9h6ssk4chm70r38e9g60_20260814T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-14",
+    "date": "2026-05-22",
     "time": "09:00",
     "title": "Office Hour"
   },
   {
-    "id": "gcal_hga298m7stdvge7nvpdb9e44p0",
+    "id": "gcal__8p342ghg8p2j4ba58h348b9k6kok6ba16kojeb9l8kq34h9l71332chj64_20260523T093000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-14",
-    "time": "13:30",
-    "title": "담임목사님과의 면담"
-  },
-  {
-    "id": "gcal__8p342ghg8p2j4ba58h348b9k6kok6ba16kojeb9l8kq34h9l71332chj64_20260815T093000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
+    "date": "2026-05-23",
     "time": "05:30",
-    "title": "새벽예배 - 음향/영상 담당"
+    "title": "새벽예배 "
   },
   {
-    "id": "gcal_bhdlfa2p95tknojvrj0j5vr56g",
+    "id": "gcal__8d130ghl68oj4ba36cok6b9k8gsj4ba268o30b9i84ojiea48h13cda56g_20260523T130000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "05:30",
-    "title": "새벽기도회 음향/영상 담당"
-  },
-  {
-    "id": "gcal_33p1lb7sd9dt5gjt1eb3ujvqqo",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "09:00",
-    "title": "일대일 동반자반 안내지 내용 점검"
-  },
-  {
-    "id": "gcal__8d130ghl68oj4ba36cok6b9k8gsj4ba268o30b9i84ojiea48h13cda56g_20260815T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
+    "date": "2026-05-23",
     "time": "09:00",
     "title": "Office Hour"
   },
   {
-    "id": "gcal__8h2j4d266koj2ba364r3ab9k6p33gb9o61234b9n6spjch218p13ad9l6g_20260815T131500Z",
+    "id": "gcal__8h2j4d266koj2ba364r3ab9k6p33gb9o61234b9n6spjch218p13ad9l6g_20260523T131500Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-15",
+    "date": "2026-05-23",
     "time": "09:15",
     "title": "주보 내용 점검 "
   },
   {
-    "id": "gcal__6d0kac9j8h2kcb9h6gq4ab9k8koj4b9o6crkaba18kp42dhg6l23ed1k68_20260815T150000Z",
+    "id": "gcal__8ks30h9j6oo36b9j8cr36b9k6t2jeba1652jab9o68o3ggi684pk2dpj8c_20260523T143000Z",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "11:00",
-    "title": "지구촌 뉴스 스크립트 작성"
-  },
-  {
-    "id": "gcal_ql48t1ln5fmckhjl0pgn22sbis",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "11:00",
-    "title": "주일예배 사회 준비"
-  },
-  {
-    "id": "gcal_73q8ts23u8vrkgsv3c7bqdrsrk",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "12:30",
-    "title": "박성자 집사님 고별예배 순서지 점검"
-  },
-  {
-    "id": "gcal_nifgvssh6dgcph58hpd7fhn9bo",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "13:00",
-    "title": "새벽기도회 설교 준비"
-  },
-  {
-    "id": "gcal_ip1ls21m79ao19i4qmhrm0ojlo",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "14:00",
-    "title": "수요예배 찬양 선곡"
-  },
-  {
-    "id": "gcal_tpbvp7jt3407k17l97lcfr5fto",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-15",
-    "time": "17:00",
-    "title": "식사 교제 - 박성태/이솔 가정"
-  },
-  {
-    "id": "gcal__8d2k6gq285338b9k64ojib9k6p132b9p8933iba188q48ha18ko3ad9i8g_20260816T111000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-16",
-    "time": "07:10",
-    "title": "TV wall 영상 세팅 및 정리"
-  },
-  {
-    "id": "gcal_2rrmbvre8ofo1e1bfm3k36spio",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-16",
-    "time": "07:30",
-    "title": "주일예배 1부 자막/조명/온라인 - 강현창"
-  },
-  {
-    "id": "gcal_v1rsnnngvd1c73sujnoov2r56s",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-16",
-    "time": "09:15",
-    "title": "주일예배 2부 인도 - 강현창"
-  },
-  {
-    "id": "gcal__6ksjah1m64rkcb9i6opjgb9k8kqjgba261248ba36sqj0h1o70p4aca164",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-16",
-    "time": "13:15",
-    "title": "놀이터/북카페 리모델링 공청회"
-  },
-  {
-    "id": "gcal__6co46ha668skcba260s46b9k6gqkcb9p74pjcb9m6h1jah216kq4cd1n8c",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-16",
-    "time": "16:30",
-    "title": "향촌마을 목자 모임"
-  },
-  {
-    "id": "gcal_vvjr8ss8jnse2onsp187h78thg",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-16",
-    "time": "21:00",
-    "title": "새벽기도회 설교 준비"
-  },
-  {
-    "id": "gcal_lkij3m4hp9809ta9lvondst47g",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-17",
-    "time": "06:00",
-    "title": "새벽기도회 설교 - 강현창"
-  },
-  {
-    "id": "gcal__64q32chn6gq48b9h84oj6b9k6p1jeba260o3iba284q46dq66t1j8gpp68_20260818T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-18",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal_fja31aj0qepoffmno0k8kdc8qs",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-18",
-    "time": "10:00",
-    "title": "EM Pastor 청빙 공고 문구 작성"
-  },
-  {
-    "id": "gcal__60pjid1o7523iba18ooj2b9k6sr3ib9o6grjab9o6gsjgcpk8ko4cd9k74",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-18",
-    "time": "15:00",
-    "title": "면담 - 담임목사님"
-  },
-  {
-    "id": "gcal_ofc13m2f2o0tjnec6bli84gais",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-18",
-    "time": "21:00",
-    "title": "강현창's Zoom Meeting"
-  },
-  {
-    "id": "gcal_1bgg8hp8o1q25t7pcmce6juj15",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "05:30",
-    "title": "새벽기도 - 음향/영상 담당"
-  },
-  {
-    "id": "gcal__60ok8di26oo36ba18kq30b9k852k6b9p68ok6b9j8csjie238gs36ci58g_20260819T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal_mj3kelltn4jeui7d08av43cj5k",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "10:00",
-    "title": "수요예배 미디어 - 강현창"
-  },
-  {
-    "id": "gcal_rf13phso8retjgv596l60iob04",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "10:00",
-    "title": "수요예배 찬양인도 - 강현창"
-  },
-  {
-    "id": "gcal__6koj8hhh8l330b9i70p48b9k6133gb9p68p38ba26t34ag9j692k8ha36o",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "11:00",
-    "title": "이미라 집사님"
-  },
-  {
-    "id": "gcal__890jed9n6t1jaba26gs48b9k75238ba26d1jgba38kpj6ca58l1j4dpm74",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "12:30",
-    "title": "식사 - 장창범 집사님"
-  },
-  {
-    "id": "gcal_4knuco3q18gq7qlkgv2ltqnep4",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "15:00",
-    "title": "새벽기도회 설교 준비"
-  },
-  {
-    "id": "gcal_qkni9fm7m9ike10uplbk0oht1g",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-19",
-    "time": "19:30",
-    "title": "EM"
-  },
-  {
-    "id": "gcal_2s2uv81d3ph87ga0oe79i3kv78",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "06:00",
-    "title": "새벽기도회 설교 - 강현창"
-  },
-  {
-    "id": "gcal_lqd1cdi5bn50eslotslmsegu34",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "08:30",
-    "title": "EM Pastor 청빙 공고문 수정"
-  },
-  {
-    "id": "gcal__74skag9j7133cba66cojab9k70q4aba18cs3ib9l6kqjahhi6t2k6d1n8k_20260820T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal_upvslhj0800cdktpn8l9tep10k",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "09:00",
-    "title": "주보 광고 업데이트"
-  },
-  {
-    "id": "gcal_b6iiclkgc3ncr6ik4saiijfph0",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "09:30",
-    "title": "교회 소개 팜플렛 디자인 점검"
-  },
-  {
-    "id": "gcal_ffgi93mphkn920gagomuuj9758",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "10:00",
-    "title": "EM Pastor 청빙 공고 웹사이트, 홈페이지, 게시판 게시"
-  },
-  {
-    "id": "gcal_ubas0fq6du6dvg3g5qgb55dkdo",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
+    "date": "2026-05-23",
     "time": "10:30",
-    "title": "양육 훈련 모임 신청서 수정"
+    "title": "지구촌 뉴스 스크립트 작성"
   },
   {
-    "id": "gcal_p1gj9vp3hsscpfob0meso8vjas",
+    "id": "gcal__6kok2ha284o46b9l8cpjib9k6gqj6ba28p148b9i8ook2c9i6op3ce1m6g",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "11:00",
-    "title": "재정소위원회에 유영익, 윤재영 목사님 사례 및 혜택 결정 요청"
-  },
-  {
-    "id": "gcal_246tivafrc4movb0e4d49i38p4",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
+    "date": "2026-05-23",
     "time": "13:00",
-    "title": "유영익, 윤재영 목사님 직무 기술서 작성"
+    "title": "일대일 양육자 훈련 - 5강"
   },
   {
-    "id": "gcal_t15j18softvdhbeqnc83fb5pps",
+    "id": "gcal_r0tglh8hu5js5bidi1bpsfaf8k_20260524",
     "calendarId": "hyunchang.kang@gmcusa.org",
     "calendarName": "내 스케줄",
-    "date": "2026-08-20",
+    "date": "2026-05-24",
+    "time": "",
+    "title": "[목장만남팀] 2기 새가족반"
+  },
+  {
+    "id": "gcal_ja6mu76n03tigcmhr6bg42fsas",
+    "calendarId": "hyunchang.kang@gmcusa.org",
+    "calendarName": "내 스케줄",
+    "date": "2026-05-24",
+    "time": "07:30",
+    "title": "주일예배 - 자막/조명 (강현창)"
+  },
+  {
+    "id": "gcal_v5do12dongu8ip15cm0fkbsqss",
+    "calendarId": "hyunchang.kang@gmcusa.org",
+    "calendarName": "내 스케줄",
+    "date": "2026-05-24",
+    "time": "07:30",
+    "title": "주일예배 1부 - 자막/조명 (강현창)"
+  },
+  {
+    "id": "gcal_mt7f3psjg2h4ocprj59an5o938",
+    "calendarId": "hyunchang.kang@gmcusa.org",
+    "calendarName": "내 스케줄",
+    "date": "2026-05-24",
+    "time": "09:15",
+    "title": "주일예배 2부 - 인도 (강현창)"
+  },
+  {
+    "id": "gcal__6l0j8gpk7124cba68op4cb9k610kaba18go36b9l89144ea688qk6e268c_20260524T171000Z",
+    "calendarId": "hyunchang.kang@gmcusa.org",
+    "calendarName": "내 스케줄",
+    "date": "2026-05-24",
+    "time": "13:10",
+    "title": "새가족반"
+  },
+  {
+    "id": "gcal__8cr42chl652j6b9n8d13eb9k6h2k8b9o88ok4b9h6sskadq48kr3ae1i60",
+    "calendarId": "hyunchang.kang@gmcusa.org",
+    "calendarName": "내 스케줄",
+    "date": "2026-05-24",
     "time": "13:30",
-    "title": "윤재영 목사님 이력서 수정 편집"
+    "title": "밀알 사랑의 캠프 모임"
   },
   {
-    "id": "gcal__74sk2d1p6h0k8b9p60s4ab9k6p2kcba26t23iba1710jic9j6oo3ada26g_20260820T180000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "14:00",
-    "title": "96기 다니엘 중보기도사역 (다음 - 민요환 집사님)"
-  },
-  {
-    "id": "gcal__892k6ca575236b9o6h33ib9k752jgb9o851kcb9l8gr34di288rjec9l68_20260820T230000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-20",
-    "time": "18:00",
-    "title": "여성제자반 리더 모임"
-  },
-  {
-    "id": "gcal__64q30e9m892jgb9g68sjgb9k69134ba27113gb9h6ssk4chm70r38e9g60_20260821T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-21",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal_3i3fvafi6810iak7m36clalafo",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-21",
-    "time": "11:00",
-    "title": "행정사무 컴퓨터 AI 설치 및 인수인계 작업 시작"
-  },
-  {
-    "id": "gcal_955t7oo5uf8mhkeqv1cnbd1qso",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-21",
-    "time": "12:00",
-    "title": "교역자 식사"
-  },
-  {
-    "id": "gcal_4s4giq96713f5071jr1gpb8t6o",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-21",
-    "time": "13:00",
-    "title": "목자 산상 수련회 - 조편성, 명찰 제작, 가이드북 제작, 라이드 명단 정리"
-  },
-  {
-    "id": "gcal_h8uofcmn9modgas1n7p8f47mnc",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-22",
-    "time": "",
-    "title": "[목장만남팀] 목자 산상 수련회"
-  },
-  {
-    "id": "gcal__8p342ghg8p2j4ba58h348b9k6kok6ba16kojeb9l8kq34h9l71332chj64_20260822T093000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-22",
-    "time": "05:30",
-    "title": "새벽예배 "
-  },
-  {
-    "id": "gcal__6p24ad1o6ork2ba164rk8b9k6cqj0ba28os44ba26csjgdhj6ks36c9n60",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-22",
-    "time": "09:00",
-    "title": "목자 산상 수련회"
-  },
-  {
-    "id": "gcal__8d130ghl68oj4ba36cok6b9k8gsj4ba268o30b9i84ojiea48h13cda56g_20260822T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-22",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal__8h2j4d266koj2ba364r3ab9k6p33gb9o61234b9n6spjch218p13ad9l6g_20260822T131500Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-22",
-    "time": "09:15",
-    "title": "주보 내용 점검 "
-  },
-  {
-    "id": "gcal__6d0kac9j8h2kcb9h6gq4ab9k8koj4b9o6crkaba18kp42dhg6l23ed1k68_20260822T150000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-22",
-    "time": "11:00",
-    "title": "지구촌 뉴스 스크립트 작성"
-  },
-  {
-    "id": "gcal__8d2k6gq285338b9k64ojib9k6p132b9p8933iba188q48ha18ko3ad9i8g_20260823T111000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-23",
-    "time": "07:10",
-    "title": "TV wall 영상 세팅 및 정리"
-  },
-  {
-    "id": "gcal_qt2ikg9buci11npt458sd3g988",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-23",
-    "time": "07:30",
-    "title": "주일예배 1부 인도 - 강현창"
-  },
-  {
-    "id": "gcal__6l146dhj6oqj6ba288qj0b9k6h348b9o8grkaba38d2j4hhj8gpkah9p84",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-23",
-    "time": "13:45",
-    "title": "전교인 피크닉 준비 모임"
-  },
-  {
-    "id": "gcal__84p4ac216cok8b9p84p4ab9k6924cb9p8gpjcb9j84rjcghh6kqkcca18k",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-24",
-    "time": "18:00",
-    "title": "여제 리더 모임"
-  },
-  {
-    "id": "gcal_ipchv134ukutm25mlkt7sq9g5c",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-25",
-    "time": "06:00",
-    "title": "새벽기도회 설교 - 강현창"
-  },
-  {
-    "id": "gcal__64q32chn6gq48b9h84oj6b9k6p1jeba260o3iba284q46dq66t1j8gpp68_20260825T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-25",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal__60ok8di26oo36ba18kq30b9k852k6b9p68ok6b9j8csjie238gs36ci58g_20260826T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-26",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal_mvck2vf2ose82m5g5si1lomvns",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-26",
-    "time": "10:00",
-    "title": "수요예배 찬양인도 - 강현창"
-  },
-  {
-    "id": "gcal__6krk6ha26134aba18cpkab9k8913aba28or3gb9i6p23ie9i8cqj2ca36g",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-26",
-    "time": "12:30",
-    "title": "식사 - 이의재 집사님"
-  },
-  {
-    "id": "gcal__74skag9j7133cba66cojab9k70q4aba18cs3ib9l6kqjahhi6t2k6d1n8k_20260827T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-27",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal__74sk2d1p6h0k8b9p60s4ab9k6p2kcba26t23iba1710jic9j6oo3ada26g_20260827T180000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-27",
-    "time": "14:00",
-    "title": "96기 다니엘 중보기도사역 (다음 - 민요환 집사님)"
-  },
-  {
-    "id": "gcal__892k6ca575236b9o6h33ib9k752jgb9o851kcb9l8gr34di288rjec9l68_20260827T230000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-27",
-    "time": "19:00",
-    "title": "여성제자반 리더 모임"
-  },
-  {
-    "id": "gcal__64q30e9m892jgb9g68sjgb9k69134ba27113gb9h6ssk4chm70r38e9g60_20260828T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-28",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal__8p342ghg8p2j4ba58h348b9k6kok6ba16kojeb9l8kq34h9l71332chj64_20260829T093000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-29",
-    "time": "05:30",
-    "title": "새벽예배 "
-  },
-  {
-    "id": "gcal__8d130ghl68oj4ba36cok6b9k8gsj4ba268o30b9i84ojiea48h13cda56g_20260829T130000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-29",
-    "time": "09:00",
-    "title": "Office Hour"
-  },
-  {
-    "id": "gcal__8h2j4d266koj2ba364r3ab9k6p33gb9o61234b9n6spjch218p13ad9l6g_20260829T131500Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-29",
-    "time": "09:15",
-    "title": "주보 내용 점검 "
-  },
-  {
-    "id": "gcal__6d0kac9j8h2kcb9h6gq4ab9k8koj4b9o6crkaba18kp42dhg6l23ed1k68_20260829T150000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-29",
-    "time": "11:00",
-    "title": "지구촌 뉴스 스크립트 작성"
-  },
-  {
-    "id": "gcal__8d2k6gq285338b9k64ojib9k6p132b9p8933iba188q48ha18ko3ad9i8g_20260830T111000Z",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-30",
-    "time": "07:10",
-    "title": "TV wall 영상 세팅 및 정리"
-  },
-  {
-    "id": "gcal_v3kmgdnhquj0k8jh8d0g5h509k",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-30",
-    "time": "07:30",
-    "title": "주일예배 1부 자막/조명 - 강현창"
-  },
-  {
-    "id": "gcal_n2skbn61tdjoc7ioj0sske4arc",
-    "calendarId": "hyunchang.kang@gmcusa.org",
-    "calendarName": "내 스케줄",
-    "date": "2026-08-31",
-    "time": "06:00",
-    "title": "새벽기도회 설교 - 강현창"
-  },
-  {
-    "id": "gcal_5erf86ggadtjr3roijkh7s9pdc",
+    "id": "gcal_26m6jvh34deqke6ore1nmonq5v",
     "calendarId": "office@gmcusa.org",
     "calendarName": "GMC OFFICE",
-    "date": "2026-08-15",
+    "date": "2026-05-23",
     "time": "",
-    "title": "CM Teacher's Training"
+    "title": "봄학기 한국학교 종강식"
   },
   {
-    "id": "gcal_14ugg25g0u5cd48sqbo4bajrf5",
+    "id": "gcal_6vib7s68vvp98dlo8qmb8dalp4_20260523",
     "calendarId": "office@gmcusa.org",
     "calendarName": "GMC OFFICE",
-    "date": "2026-08-16",
-    "time": "",
-    "title": "다니엘 중보기도용사 전체 모임"
-  },
-  {
-    "id": "gcal_6dc3nmrncnqvmqbh97ou3bfnm8",
-    "calendarId": "office@gmcusa.org",
-    "calendarName": "GMC OFFICE",
-    "date": "2026-08-22",
-    "time": "",
-    "title": "목자 산상 수련회"
-  },
-  {
-    "id": "gcal_6vib7s68vvp98dlo8qmb8dalp4_20260822",
-    "calendarId": "office@gmcusa.org",
-    "calendarName": "GMC OFFICE",
-    "date": "2026-08-22",
+    "date": "2026-05-23",
     "time": "",
     "title": "양로원 사역"
   },
   {
-    "id": "gcal_hkregtrqek9pfrfl3hrbcltri7_20260823",
+    "id": "gcal_155jh06t15ffb38qcrvldq2di5",
     "calendarId": "office@gmcusa.org",
     "calendarName": "GMC OFFICE",
-    "date": "2026-08-23",
+    "date": "2026-05-24",
+    "time": "",
+    "title": "단기선교 기금 마련 잔치"
+  },
+  {
+    "id": "gcal_hkregtrqek9pfrfl3hrbcltri7_20260524",
+    "calendarId": "office@gmcusa.org",
+    "calendarName": "GMC OFFICE",
+    "date": "2026-05-24",
     "time": "",
     "title": "노숙자 사역"
   },
   {
-    "id": "gcal_3k4jpce1hqngmh19a1dis2gnm5",
-    "calendarId": "office@gmcusa.org",
-    "calendarName": "GMC OFFICE",
-    "date": "2026-08-29",
-    "time": "",
-    "title": "EM Leader's Training"
-  },
-  {
-    "id": "gcal_245spds8rtq0m8721qfot9r60v",
-    "calendarId": "office@gmcusa.org",
-    "calendarName": "GMC OFFICE",
-    "date": "2026-08-30",
-    "time": "",
-    "title": "YM Open House"
-  },
-  {
-    "id": "gcal_58jvo6q6d9otendoj963sibt50",
-    "calendarId": "office@gmcusa.org",
-    "calendarName": "GMC OFFICE",
-    "date": "2026-08-30",
-    "time": "",
-    "title": "정기제직회"
-  },
-  {
-    "id": "gcal_131bdpmk8t752p168d5pstq5fa_20260812T134500Z",
+    "id": "gcal_0emgoc8gspbp5bc96pqlalp021_20260519T130000Z",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-12",
-    "time": "09:45",
-    "title": "수요예배"
-  },
-  {
-    "id": "gcal_42l2vpqjlrmo2od4rbh9qpino8_20260814T130000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-14",
+    "date": "2026-05-19",
     "time": "09:00",
     "title": "교역자회의"
   },
   {
-    "id": "gcal_08jj76b8b323rq7o163gvmmj2k_20260815T100000Z",
+    "id": "gcal__88oj6dph650jab9i6kp48b9k60rjeba16l0k2b9k88s3ihi360okae1g6c",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-15",
-    "time": "06:00",
-    "title": "토요새벽기도회"
-  },
-  {
-    "id": "gcal_36ostkko4pc7gav3rejr3jovdb_20260816T111500Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-16",
-    "time": "07:15",
-    "title": "주일 1부 "
-  },
-  {
-    "id": "gcal_51tj6otf1e9efvq693t3uiaptv_20260816T130000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-16",
-    "time": "09:00",
-    "title": "주일 2부"
-  },
-  {
-    "id": "gcal_1638fficnt8ksf0epbdrgc8ag7_20260816T150000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-16",
+    "date": "2026-05-19",
     "time": "11:00",
-    "title": "주일 3부 (서효현)"
+    "title": "고별예배 - 김복례 집사님"
   },
   {
-    "id": "gcal_0emgoc8gspbp5bc96pqlalp021_20260818T130000Z",
+    "id": "gcal_131bdpmk8t752p168d5pstq5fa_20260520T134500Z",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-18",
-    "time": "09:00",
-    "title": "교역자회의"
-  },
-  {
-    "id": "gcal__6sq4cd1g6oo3aba46h0kab9k65338b9p6ks3ab9k6kp3edpn6go32e1k6o",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-18",
-    "time": "13:00",
-    "title": "고 박성자 집사님 고별예배 "
-  },
-  {
-    "id": "gcal_131bdpmk8t752p168d5pstq5fa_20260819T134500Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-19",
+    "date": "2026-05-20",
     "time": "09:45",
     "title": "수요예배"
   },
   {
-    "id": "gcal_42l2vpqjlrmo2od4rbh9qpino8_20260821T130000Z",
+    "id": "gcal__6d330c1g70oj4b9h6t13eb9k8oqk6ba16kpj8b9p8h238cpk60p36hhi88",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-21",
-    "time": "09:00",
-    "title": "교역자회의"
-  },
-  {
-    "id": "gcal_08jj76b8b323rq7o163gvmmj2k_20260822T100000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-22",
-    "time": "06:00",
-    "title": "토요새벽기도회"
-  },
-  {
-    "id": "gcal_36ostkko4pc7gav3rejr3jovdb_20260823T111500Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-23",
-    "time": "07:15",
-    "title": "주일 1부 "
-  },
-  {
-    "id": "gcal_51tj6otf1e9efvq693t3uiaptv_20260823T130000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-23",
-    "time": "09:00",
-    "title": "주일 2부"
-  },
-  {
-    "id": "gcal_1638fficnt8ksf0epbdrgc8ag7_20260823T150000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-23",
-    "time": "11:00",
-    "title": "주일 3부 (서효현)"
-  },
-  {
-    "id": "gcal__70o4aghm712j0ba46kr48b9k8grkcb9p8gs38b9p74q3ecpk8grjcg9i84",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-23",
-    "time": "13:15",
-    "title": "임시 실행위원회의"
-  },
-  {
-    "id": "gcal_0emgoc8gspbp5bc96pqlalp021_20260825T130000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-25",
-    "time": "09:00",
-    "title": "교역자회의"
-  },
-  {
-    "id": "gcal_131bdpmk8t752p168d5pstq5fa_20260826T134500Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-26",
-    "time": "09:45",
-    "title": "수요예배"
-  },
-  {
-    "id": "gcal_42l2vpqjlrmo2od4rbh9qpino8_20260828T130000Z",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-28",
-    "time": "09:00",
-    "title": "교역자회의"
-  },
-  {
-    "id": "gcal_5vus2b1obc4algtad6q0fggfhp",
-    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
-    "calendarName": "사역자 스케줄",
-    "date": "2026-08-28",
+    "date": "2026-05-20",
     "time": "12:00",
-    "title": "교역자 식사 (이대순 집사님)"
+    "title": "사역자 식사-홍명순 집사님"
   },
   {
-    "id": "gcal_08jj76b8b323rq7o163gvmmj2k_20260829T100000Z",
+    "id": "gcal_42l2vpqjlrmo2od4rbh9qpino8_20260522T130000Z",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-29",
+    "date": "2026-05-22",
+    "time": "09:00",
+    "title": "교역자회의"
+  },
+  {
+    "id": "gcal_08jj76b8b323rq7o163gvmmj2k_20260523T100000Z",
+    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
+    "calendarName": "사역자 스케줄",
+    "date": "2026-05-23",
     "time": "06:00",
     "title": "토요새벽기도회"
   },
   {
-    "id": "gcal_36ostkko4pc7gav3rejr3jovdb_20260830T111500Z",
+    "id": "gcal_36ostkko4pc7gav3rejr3jovdb_20260524T111500Z",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-30",
+    "date": "2026-05-24",
     "time": "07:15",
     "title": "주일 1부 "
   },
   {
-    "id": "gcal_51tj6otf1e9efvq693t3uiaptv_20260830T130000Z",
+    "id": "gcal_51tj6otf1e9efvq693t3uiaptv_20260524T130000Z",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-30",
+    "date": "2026-05-24",
     "time": "09:00",
     "title": "주일 2부"
   },
   {
-    "id": "gcal_1638fficnt8ksf0epbdrgc8ag7_20260830T150000Z",
+    "id": "gcal_1638fficnt8ksf0epbdrgc8ag7_20260524T150000Z",
     "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
     "calendarName": "사역자 스케줄",
-    "date": "2026-08-30",
+    "date": "2026-05-24",
     "time": "11:00",
     "title": "주일 3부 (서효현)"
+  },
+  {
+    "id": "gcal__88rk6gi284r38ba184qkcb9k68o46ba16gqjcba56l0k2da168sk6g9h8g",
+    "calendarId": "c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com",
+    "calendarName": "사역자 스케줄",
+    "date": "2026-05-25",
+    "time": "17:00",
+    "title": "선주향 권사님 고별예배"
   }
 ];</script>
   <!-- GCAL_DATA_END -->
@@ -1904,8 +1128,6 @@
     }
     .all-week-btn:hover { background: rgba(255,255,255,0.3); }
     .all-week-btn.active { background: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.8); }
-
-
   </style>
 </head>
 <body>
@@ -1924,7 +1146,6 @@
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button class="header-annual-btn" id="syncBtn" onclick="syncSheets()" title="Google Sheets 동기화" style="display:none;">☁️ 동기화</button>
-
     <a class="header-annual-btn" href="annual-dashboard.html">연간 사역 →</a>
   </div>
 </div>
@@ -1962,8 +1183,6 @@
 
   <div class="cards-grid" id="cardsGrid"></div>
 </div>
-
-
 
 <!-- Add Ministry Modal -->
 <div class="modal-overlay hidden" id="ministryModal">
@@ -2441,42 +1660,9 @@ async function gcalDeleteEvent(eventId) {
   } catch(e) {}
 }
 
-// 사역이 "내 스케줄" 또는 로컬 캘린더 사역인지 판별 (쓰기 권한이 있는 사역)
+// 사역이 "내 스케줄" 캘린더 사역인지 판별
 function isWritableCalMinistry(m) {
-  return m && (!m.gcalId || m.gcalId === WRITABLE_CALENDAR_ID);
-}
-
-// 사역의 할 일을 Google Calendar와 실시간으로 동기화하는 헬퍼 함수
-async function syncTodoToGcal(m, todo) {
-  if (!isWritableCalMinistry(m)) return;
-  const plainTitle = (todo.text || '').replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
-  if (todo.date) {
-    if (todo.gcalEventId) {
-      // 이미 연동된 일정이 있는 경우: 변경 감지 후 업데이트 (디바운스 적용)
-      scheduleGcalUpdate(m, todo);
-    } else {
-      // 일정이 없는 경우: 신규 생성
-      const eventId = await gcalCreateEvent({
-        title: plainTitle,
-        date: todo.date,
-        time: todo.time || '',
-        recurrence: todo.recurrence || 'none'
-      });
-      if (eventId) {
-        todo.gcalEventId = eventId;
-        todo.updatedAt = Date.now();
-        saveData();
-      }
-    }
-  } else {
-    // 날짜가 없는데 연동 ID가 있는 경우: 구글 캘린더에서 해당 일정 삭제
-    if (todo.gcalEventId) {
-      await gcalDeleteEvent(todo.gcalEventId);
-      delete todo.gcalEventId;
-      todo.updatedAt = Date.now();
-      saveData();
-    }
-  }
+  return m && m.gcalId === WRITABLE_CALENDAR_ID;
 }
 
 // todo 변경 시 "내 스케줄" 캘린더에 반영 (디바운스됨)
@@ -2549,6 +1735,7 @@ function saveCustomCategories(cats) {
 // ── State ──────────────────────────────────────────────────────────────────
 let weekOffset = 0;   // 0 = current week (Tue~Mon)
 let data = loadData();
+let _isInitializing = true;
 data.deletedIds = data.deletedIds || {};
 
 // 30일이 지난 삭제 정보 정리 (Garbage Collection)
@@ -2629,16 +1816,11 @@ function loadData() {
 
 // 반복 이벤트 ID 정규화: _20260512T130000Z 날짜 접미사 제거
 function gcalBaseId(id) {
-  if (!id) return '';
-  let cleaned = String(id).toLowerCase();
-  if (cleaned.startsWith('gcal_')) {
-    cleaned = cleaned.slice(5);
-  }
-  return cleaned.replace(/_\d{8}t\d{6}z$/, '');
+  return (id || '').replace(/_\d{8}T\d{6}Z$/, '');
 }
 function gcalIdMatch(a, b) {
   if (!a || !b) return false;
-  return gcalBaseId(a) === gcalBaseId(b);
+  return a === b || gcalBaseId(a) === gcalBaseId(b);
 }
 
 // gcalId 중복 사역 제거 + 기존 uid ID를 stableId로 마이그레이션
@@ -2694,8 +1876,7 @@ function deduplicateMinistries() {
 // Apps Script 저장용: 캘린더 자동생성 항목 제외 (셀 용량 50,000자 초과 방지)
 function dataForSync() {
   const d = {
-    deletedIds: data.deletedIds || {},
-    _annualData: localStorage.getItem('gmc_annual_2026') || null
+    deletedIds: data.deletedIds || {}
   };
   Object.keys(data).forEach(wk => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(wk)) return;
@@ -2732,14 +1913,9 @@ function dataForSync() {
   return d;
 }
 
-let initialPullCompleted = false;
-
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  if (!initialPullCompleted) {
-    console.log("saveData: Skipping cloud push because initial pull is still in progress.");
-    return;
-  }
+  if (_isInitializing) return;
   try {
     const payload = JSON.stringify(dataForSync());
     fetch(APPS_SCRIPT_URL, {
@@ -2979,7 +2155,7 @@ function buildCard(m) {
   const total = m.todos.length;
   const done  = m.todos.filter(t=>t.done).length;
   const pct   = total ? Math.round(done/total*100) : 0;
-  const urgentCount = m.status === 's-done' ? 0 : m.todos.filter(t => !t.done && ['overdue','today'].includes(getDueStatus(t))).length;
+  const urgentCount = m.todos.filter(t => !t.done && ['overdue','today'].includes(getDueStatus(t))).length;
   const cat = getAllCategories().find(c => c.key === (m.category||'other')) || CATEGORIES.find(c => c.key === 'other');
 
   // 전체 주 todos 날짜·시간순 정렬 (전체 표시)
@@ -3013,7 +2189,7 @@ function buildCard(m) {
     </div>
     <div class="card-body" style="padding:10px 14px;">
       <div class="status-row" style="margin-bottom:8px;">
-        ${STATUS_LIST.map(s=>`<span class="status-chip ${s.key}${m.status===s.key?' selected':''}" data-status="${s.key}">${s.label}</span>`).join('')}
+        ${STATUS_LIST.map(s=>`<span class="status-chip ${s.key}${m.status===s.key?' selected':''}">${s.label}</span>`).join('')}
       </div>
       ${filteredTodos.length > 0 ? buildTodoListHtml(filteredTodos) : `<div style="font-size:0.8rem;color:var(--text-muted);padding:4px 0;">할 일이 없습니다. 클릭하여 추가하세요.</div>`}
     </div>
@@ -3025,17 +2201,6 @@ function buildCard(m) {
 
 function getDueStatus(t) {
   if (t.done || !t.dueDate) return null;
-  if (t.annualEventId) {
-    try {
-      const annualRaw = localStorage.getItem('gmc_annual_2026');
-      if (annualRaw) {
-        const annualData = JSON.parse(annualRaw);
-        if (annualData[t.annualEventId] && annualData[t.annualEventId].status === 'done') {
-          return null;
-        }
-      }
-    } catch(e) {}
-  }
   const today = fmtYMD(new Date());
   const tomorrow = fmtYMD(new Date(Date.now() + 86400000));
   if (t.dueDate < today)    return 'overdue';
@@ -3081,7 +2246,6 @@ function attachCardEvents(card, m) {
       e.stopPropagation();
       const cur = getM();
       cur.status = cur.status === chip.dataset.status ? '' : chip.dataset.status;
-      cur.updatedAt = Date.now();
       saveData(); renderCards();
     });
   });
@@ -3304,10 +2468,8 @@ document.getElementById('modalSave').addEventListener('click', () => {
     // One-off todo with date/time
     if (repeatType === 'none' && (oneOffDate || repeatTime)) {
       const tl = repeatTime ? `[${repeatTime}] ` : '';
-      const newTodo = { id: uid(), text: tl + name, date: oneOffDate || null,
-        time: repeatTime, done: false, progress: '', needs: '', updatedAt: Date.now() };
-      newM.todos.push(newTodo);
-      syncTodoToGcal(newM, newTodo);
+      newM.todos.push({ id: uid(), text: tl + name, date: oneOffDate || null,
+        time: repeatTime, done: false, progress: '', needs: '', updatedAt: Date.now() });
     }
     wk.ministries.push(newM);
     // Generate recurring todos for current week
@@ -3365,35 +2527,13 @@ function autoResize() {
 
 // ── Due Date Notifications ────────────────────────────────────────────────
 function checkDueNotifications() {
-  const completedKeys = new Set();
-  Object.values(data).forEach(wk => {
-    (wk.ministries || []).forEach(m => {
-      const isMCompleted = (m.status === 's-done');
-      if (isMCompleted && m.annualEventId) {
-        completedKeys.add(m.annualEventId);
-      }
-      (m.todos || []).forEach(t => {
-        if (t.done || isMCompleted) {
-          const key = t.annualEventId || t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
-          completedKeys.add(key);
-        }
-      });
-    });
-  });
-
   const urgent = [];
-  const urgentKeys = new Set();
   Object.values(data).forEach(wk => {
     (wk.ministries || []).forEach(m => {
-      if (m.status === 's-done') return;
       m.todos.forEach(t => {
         const s = getDueStatus(t);
         if (s === 'overdue' || s === 'today') {
-          const key = t.annualEventId || t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '').trim();
-          if (!completedKeys.has(key) && !urgentKeys.has(key)) {
-            urgentKeys.add(key);
-            urgent.push({ ministry: m.name, text: t.text, status: s });
-          }
+          urgent.push({ ministry: m.name, text: t.text, status: s });
         }
       });
     });
@@ -3623,70 +2763,11 @@ function mergeDuplicateCalMinistries() {
 }
 
 function importGCalEvents() {
-  if (!Array.isArray(window.GCAL_EVENTS)) return false;
+  if (!window.GCAL_EVENTS || !window.GCAL_EVENTS.length) return;
 
   let changed = false;
   data.deletedIds = data.deletedIds || {};
 
-  // ── 캘린더에서 삭제된 일정 감지하여 로컬에서도 제거 ──
-  // 3주 범위 구하기 (지난주 화요일 ~ 다음주 월요일)
-  const today = new Date();
-  const dow = today.getDay();
-  let daysToTue;
-  if (dow === 0) daysToTue = 5;
-  else if (dow === 1) daysToTue = 6;
-  else daysToTue = dow - 2;
-  const thisTuesday = new Date(today);
-  thisTuesday.setDate(today.getDate() - daysToTue);
-  thisTuesday.setHours(0, 0, 0, 0);
-
-  const startRange = new Date(thisTuesday);
-  startRange.setDate(thisTuesday.getDate() - 7);
-  startRange.setHours(0, 0, 0, 0);
-
-  const endRange = new Date(thisTuesday);
-  endRange.setDate(thisTuesday.getDate() + 13);
-  endRange.setHours(23, 59, 59, 999);
-
-  const startDateStr = fmtYMD(startRange);
-  const endDateStr = fmtYMD(endRange);
-
-  const fetchedKeys = new Set(window.GCAL_EVENTS.map(ev => gcalBaseId(ev.id) + '_' + ev.date));
-  const TARGET_CALENDARS = [
-    'hyunchang.kang@gmcusa.org',
-    'office@gmcusa.org',
-    'c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com'
-  ];
-
-  if (initialPullCompleted) {
-    Object.keys(data).forEach(wkKey => {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(wkKey)) return;
-      const wk = data[wkKey];
-      (wk.ministries || []).forEach(m => {
-        const calId = m.gcalId || WRITABLE_CALENDAR_ID;
-        if (!TARGET_CALENDARS.includes(calId)) return;
-
-        m.todos = m.todos.filter(t => {
-          if (!t.gcalEventId) return true;
-          // 완료되었거나 사용자가 메모/마감일 등 기록을 변경한 할 일은 캘린더에서 사라졌더라도 지우지 않음
-          if (t.done || t.updatedAt || t.dueDate || t.needs || t.progress || t.category) return true;
-
-          // todo 날짜가 가져온 3주 범위 내인 경우에만 감지
-          if (t.date && t.date >= startDateStr && t.date <= endDateStr) {
-            const baseId = gcalBaseId(t.gcalEventId);
-            const key = baseId + '_' + t.date;
-            if (!fetchedKeys.has(key)) {
-              changed = true;
-              return false; // GCal에서 삭제되었으므로 로컬에서도 삭제
-            }
-          }
-          return true;
-        });
-      });
-    });
-  }
-
-  // ── 새로운 일정 추가 및 기존 일정 변경 반영 ──
   window.GCAL_EVENTS.forEach(ev => {
     // 사용자가 삭제한 캘린더 이벤트는 다시 import하지 않음
     if (data.deletedIds['gcalev:' + gcalBaseId(ev.id)]) return;
@@ -3747,31 +2828,31 @@ function importGCalEvents() {
 
     if (!ministry) {
       if (isCalendarOnly) {
-         const stableId = 'gcalm_' + key + '_' + ev.calendarId.replace(/[^a-zA-Z0-9]/g, '_');
-         ministry = {
-           id: stableId,
-           gcalId: ev.calendarId,
-           name: targetMinistryName,
-           owner: '',
-           color: targetMinistryColor,
-           status: 's-planning',
-           todos: [],
-           progress: '',
-           needs: '',
-           pinned: false,
-         };
+        const stableId = 'gcalm_' + key + '_' + ev.calendarId.replace(/[^a-zA-Z0-9]/g, '_');
+        ministry = {
+          id: stableId,
+          gcalId: ev.calendarId,
+          name: targetMinistryName,
+          owner: '',
+          color: targetMinistryColor,
+          status: 's-planning',
+          todos: [],
+          progress: '',
+          needs: '',
+          pinned: false,
+        };
       } else {
-         ministry = {
-           id: uid(),
-           name: targetMinistryName,
-           owner: '',
-           color: targetMinistryColor,
-           status: 's-planning',
-           todos: [],
-           progress: '',
-           needs: '',
-           pinned: false,
-         };
+        ministry = {
+          id: uid(),
+          name: targetMinistryName,
+          owner: '',
+          color: targetMinistryColor,
+          status: 's-planning',
+          todos: [],
+          progress: '',
+          needs: '',
+          pinned: false,
+        };
       }
       wk.ministries.push(ministry);
       changed = true;
@@ -3796,28 +2877,13 @@ function importGCalEvents() {
         updatedAt: 0,
       });
       changed = true;
-    } else {
-      if (ev.id && existingTodo.gcalEventId !== ev.id) {
-        existingTodo.gcalEventId = ev.id;
-        changed = true;
-      }
-      // GCal 수정 연동: 제목, 날짜, 또는 시간이 달라진 경우 업데이트
-      // 단, 최근 60초 이내에 로컬에서 직접 수정한 내역이 있다면 구글 캘린더의 오래된 정보로 덮어쓰지 않음 (레이스 컨디션 방지)
-      const newText = timeLabel + ev.title;
-      if (existingTodo.text !== newText || existingTodo.date !== ev.date || existingTodo.time !== (ev.time || '')) {
-        const lastUpdated = existingTodo.updatedAt || 0;
-        if (Date.now() - lastUpdated > 60000) {
-          existingTodo.text = newText;
-          existingTodo.date = ev.date;
-          existingTodo.time = ev.time || '';
-          existingTodo.updatedAt = Date.now();
-          changed = true;
-        }
-      }
+    } else if (ev.id && existingTodo.gcalEventId !== ev.id) {
+      existingTodo.gcalEventId = ev.id;
+      changed = true;
     }
   });
 
-  // 날짜·시간 순 정렬 및 저장
+  // 날짜·시간 순 정렬
   if (changed) {
     Object.values(data).forEach(wk => {
       (wk.ministries || []).forEach(m => {
@@ -3833,8 +2899,6 @@ function importGCalEvents() {
     });
     saveData();
   }
-
-  return changed;
 }
 
 // ── Detail Drawer ─────────────────────────────────────────────────────────
@@ -3990,7 +3054,7 @@ function renderDateTodos() {
       saveData();
       renderCards();
       renderDateTodos();
-      syncTodoToGcal(m, todo);
+      scheduleGcalUpdate(m, todo);
     };
 
     // Time
@@ -4009,7 +3073,7 @@ function renderDateTodos() {
       saveData();
       renderCards();
       renderDateTodos();
-      syncTodoToGcal(m, todo);
+      scheduleGcalUpdate(m, todo);
     };
 
     // Due Date
@@ -4027,10 +3091,7 @@ function renderDateTodos() {
         m.todos = m.todos.filter(x => x.id !== todo.id);
         data.deletedIds = data.deletedIds || {};
         data.deletedIds[todo.id] = Date.now();
-        if (todo.gcalEventId) {
-          data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
-          gcalDeleteEvent(todo.gcalEventId);
-        }
+        if (todo.gcalEventId) data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
         saveData();
         renderCards();
         renderDateTodos();
@@ -4157,8 +3218,17 @@ function openDrawer(m) {
     document.getElementById('drawerTodoTime').value = '';
     document.getElementById('drawerTodoRecurrence').value = 'none';
     saveData(); renderDrawerTodos(); renderCards();
-    // Google Calendar 동기화
-    syncTodoToGcal(m, newTodo);
+    // 반복이 설정되었거나 "내 스케줄" 사역인 경우 캘린더에 생성 (날짜 필수)
+    if (dateVal && (repeatVal !== 'none' || isWritableCalMinistry(m))) {
+      gcalCreateEvent({ title: text, date: dateVal, time: timeVal, recurrence: repeatVal }).then(eventId => {
+        if (eventId) {
+          newTodo.gcalEventId = eventId;
+          newTodo.updatedAt = Date.now();
+          saveData();
+          showToast('📅 캘린더에 추가됨');
+        }
+      });
+    }
   };
   document.getElementById('drawerTodoAdd').onclick = addTodo;
   let _imeOn = false;
@@ -4242,7 +3312,7 @@ function openTodoDrawer(ministryId, todoId) {
         style="font-size:0.78rem;border:1px solid var(--border);border-radius:6px;padding:3px 7px;color:var(--text);background:#fff;" />
       <select id="todoEditCategory"
         style="font-size:0.78rem;border:1px solid var(--border);border-radius:6px;padding:3px 7px;color:var(--text);background:#fff;">
-        ${getAllCategories().map(c => `<option value="${c.key}"${c.key===curCatKey?' selected':''}>${c.label}</option>`).join('')}
+        ${CATEGORIES.map(c => `<option value="${c.key}"${c.key===curCatKey?' selected':''}>${c.label}</option>`).join('')}
       </select>
       <select id="todoEditRecurrence"
         style="font-size:0.78rem;border:1px solid var(--border);border-radius:6px;padding:3px 7px;color:var(--text);background:#fff;">
@@ -4257,7 +3327,6 @@ function openTodoDrawer(ministryId, todoId) {
   sr.querySelector('#todoEditDate').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
     t.date = e.target.value || null; t.updatedAt = Date.now(); saveData(); renderCards();
-    syncTodoToGcal(getDrawerM(), t);
   };
   sr.querySelector('#todoEditTime').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
@@ -4268,13 +3337,12 @@ function openTodoDrawer(ministryId, todoId) {
     t.updatedAt = Date.now();
     saveData(); renderCards(); renderDrawerTodosSingle();
     document.getElementById('drawerTitle').value = t.text.replace(/^\[\d{2}:\d{2}\]\s*/, '');
-    syncTodoToGcal(getDrawerM(), t);
   };
   sr.querySelector('#todoEditCategory').onchange = e => {
     const t = getDrawerTodo(); if (!t) return;
     t.category = e.target.value;
     t.updatedAt = Date.now();
-    const cat = getAllCategories().find(c => c.key === t.category) || CATEGORIES.find(c => c.key === 'other');
+    const cat = CATEGORIES.find(c => c.key === t.category) || CATEGORIES.find(c => c.key === 'other');
     badge.textContent = cat.label; badge.style.background = cat.color;
     saveData(); renderCards();
   };
@@ -4426,10 +3494,7 @@ function renderDrawerTodosSingle() {
           m.todos = m.todos.filter(x => x.id !== todo.id);
           data.deletedIds = data.deletedIds || {};
           data.deletedIds[todo.id] = Date.now();
-          if (todo.gcalEventId) {
-            data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
-            gcalDeleteEvent(todo.gcalEventId);
-          }
+          if (todo.gcalEventId) data.deletedIds['gcalev:' + gcalBaseId(todo.gcalEventId)] = Date.now();
           saveData();
           renderCards();
           closeDrawer();
@@ -4616,7 +3681,7 @@ function renderDrawerTodos() {
         return ta < tb ? -1 : ta > tb ? 1 : 0;
       });
       saveData(); renderDrawerTodos(); renderCards();
-      syncTodoToGcal(m, todo);
+      scheduleGcalUpdate(m, todo);
     }
   }, sig);
 
@@ -4630,7 +3695,6 @@ function renderDrawerTodos() {
       data.deletedIds[li.dataset.todoId] = Date.now();
       if (deletedTodo && deletedTodo.gcalEventId) {
         data.deletedIds['gcalev:' + gcalBaseId(deletedTodo.gcalEventId)] = Date.now();
-        gcalDeleteEvent(deletedTodo.gcalEventId);
       }
       saveData(); renderDrawerTodos(); renderCards();
     }
@@ -4795,7 +3859,6 @@ document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 // ── Init ──────────────────────────────────────────────────────────────────
 // 비정상 키(__synctest 등) 정리 - YYYY-MM-DD 형식 주차 키만 남김
 Object.keys(data).forEach(k => {
-  if (k === '_annualData') return;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !data[k] || typeof data[k] !== 'object' || !Array.isArray(data[k].ministries)) {
     delete data[k];
   }
@@ -4849,24 +3912,10 @@ function normalizeIncomingData(fresh) {
 // - localStorage 비어있으면 전체 복원
 // - 데이터 있으면 할 일 단위로 병합 (다른 기기에서 추가된 항목 반영)
 function mergeIncomingData(fresh) {
-  // 연간 사역 데이터 동기화 병합
-  if (fresh && fresh._annualData) {
-    try {
-      const freshAnnual = JSON.parse(fresh._annualData);
-      const localRaw = localStorage.getItem('gmc_annual_2026');
-      const localAnnual = JSON.parse(localRaw || '{}');
-      const freshTime = freshAnnual._updatedAt || 0;
-      const localTime = localAnnual._updatedAt || 0;
-      if (freshTime > localTime) {
-        localStorage.setItem('gmc_annual_2026', JSON.stringify(freshAnnual));
-      }
-    } catch(e) {}
-  }
-
   fresh = normalizeIncomingData(fresh);
   if (!fresh || typeof fresh !== 'object') return false;
   const freshWeekKeys = Object.keys(fresh).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
-  if (freshWeekKeys.length === 0 && (!fresh.deletedIds || Object.keys(fresh.deletedIds).length === 0) && !fresh._annualData) return false;
+  if (freshWeekKeys.length === 0 && (!fresh.deletedIds || Object.keys(fresh.deletedIds).length === 0)) return false;
 
   let changed = false;
 
@@ -5034,11 +4083,10 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
     return r.json();
   })
   .then(fresh => {
-    console.log('[디버그] 서버에서 가져온 fresh 데이터:', fresh);
     if (fresh && fresh.error) {
       throw new Error('Server error: ' + fresh.error);
     }
-    
+
     // 진단을 위한 카운트 계산
     const freshWeekKeys = Object.keys(fresh || {}).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
     let totalMins = 0;
@@ -5052,20 +4100,20 @@ fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { credentials: 'omit', cache: 'no-st
     });
 
     const changed = mergeIncomingData(fresh);
-    initialPullCompleted = true; // 최초 로드 완료 표시 (이후 자동/수동 저장 시 서버 push 활성화)
     if (changed) {
       saveData();
       importGCalEvents();
       renderCards();
       showToast(`☁️ 스마트 동기화(pull) 완료 (데이터 ${totalTodos}개 반영)`);
     } else {
-      // 데이터가 완전히 똑같아서 업데이트할 내용이 없을 때도 성공 메시지 표시
       showToast(`☁️ 최신 데이터 동기화 완료 (${freshWeekKeys.length}주차, 사역 ${totalMins}개, 할일 ${totalTodos}개)`);
     }
   })
   .catch(err => {
-    initialPullCompleted = true; // 에러가 나더라도 편집 저장은 동작하도록 설정
     showToast('⚠️ 동기화 실패: ' + err.message);
+  })
+  .finally(() => {
+    _isInitializing = false;
   });
 
 // 시작 시 Google Calendar 이벤트 자동 fetch (페이지 열 때마다 최신화)
@@ -5116,16 +4164,11 @@ async function autoPull(opts = {}) {
         clearTimeout(calTid);
         if (calR.ok) {
           const events = await calR.json();
-          if (Array.isArray(events)) {
+          if (Array.isArray(events) && events.length > 0) {
             window.GCAL_EVENTS = events;
-            const imported = importGCalEvents();
-            if (imported) {
-              changed = true;
-              renderCards();
-              if (activeMode === 'ministry') renderDrawerTodos();
-              else if (activeMode === 'date') renderDateTodos();
-              else if (activeMode === 'todo') renderDrawerTodosSingle();
-            }
+            importGCalEvents();
+            saveData();
+            renderCards();
           }
         }
       } catch(e) {}
@@ -5136,14 +4179,14 @@ async function autoPull(opts = {}) {
 
 // 페이지 포커스 시 자동 pull (다른 기기에서 변경 즉시 반영)
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) autoPull({ includeCalendar: true, toast: false });
+  if (!document.hidden) autoPull({ toast: false });
 });
-window.addEventListener('focus', () => autoPull({ includeCalendar: true, toast: false }));
+window.addEventListener('focus', () => autoPull({ toast: false }));
 
-// 페이지 active 동안 15초마다 백그라운드 pull (캘린더 포함)
+// 페이지 active 동안 60초마다 백그라운드 pull
 setInterval(() => {
-  if (!document.hidden) autoPull({ includeCalendar: true, toast: false });
-}, 15 * 1000);
+  if (!document.hidden) autoPull({ toast: false });
+}, 60 * 1000);
 
 // 호환을 위해 syncSheets는 유지 (혹시 다른 곳에서 호출)
 async function syncSheets() {
@@ -5217,8 +4260,6 @@ function showToast(msg) {
   clearTimeout(t._tid);
   t._tid = setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
-
-
 </script>
 </body>
 </html>

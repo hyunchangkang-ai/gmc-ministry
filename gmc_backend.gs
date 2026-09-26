@@ -140,8 +140,13 @@ function doGet(e) {
 }
 
 // ── POST 핸들러 ──────────────────────────────────────────────────────────────
-// 쓰기 가능한 캘린더 화이트리스트 (안전상 한 곳만 허용)
-const WRITABLE_CALENDAR_ID = 'hyunchang.kang@gmcusa.org';
+// 쓰기 가능한 캘린더 허용 목록
+const WRITABLE_CALENDARS = [
+  'hyunchang.kang@gmcusa.org',
+  'office@gmcusa.org',
+  'c_d4379e87ef260d2f72099d423dc07792c97e0a4817599315ff8f38122ea055e2@group.calendar.google.com'
+];
+const WRITABLE_CALENDAR_ID = 'hyunchang.kang@gmcusa.org'; // 기본값 (폴백용)
 
 function doPost(e) {
   try {
@@ -182,7 +187,7 @@ function gcalCreate(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     const calendarId = body.calendarId || WRITABLE_CALENDAR_ID;
-    if (calendarId !== WRITABLE_CALENDAR_ID) {
+    if (!WRITABLE_CALENDARS.includes(calendarId)) {
       return jsonOut({ error: 'calendar not writable: ' + calendarId });
     }
     const title = (body.title || '').trim();
@@ -240,7 +245,7 @@ function gcalUpdate(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     const calendarId = body.calendarId || WRITABLE_CALENDAR_ID;
-    if (calendarId !== WRITABLE_CALENDAR_ID) {
+    if (!WRITABLE_CALENDARS.includes(calendarId)) {
       return jsonOut({ error: 'calendar not writable: ' + calendarId });
     }
     const eventIdRaw = (body.eventId || '').replace(/^gcal_/, '');
@@ -281,7 +286,7 @@ function gcalDelete(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     const calendarId = body.calendarId || WRITABLE_CALENDAR_ID;
-    if (calendarId !== WRITABLE_CALENDAR_ID) {
+    if (!WRITABLE_CALENDARS.includes(calendarId)) {
       return jsonOut({ error: 'calendar not writable: ' + calendarId });
     }
     const eventIdRaw = (body.eventId || '').replace(/^gcal_/, '');

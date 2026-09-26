@@ -18,7 +18,7 @@ pip3 install google-auth google-auth-oauthlib google-auth-httplib2 google-api-py
 6. 생성 완료 후 **JSON 다운로드** 클릭
 7. 내려받은 파일을 아래 경로로 이동/이름 변경:
    ```
-   /Users/hyunchangkang/Claude/gcal_credentials.json
+   /Users/hyunchangkang/Antigravity/gcal_credentials.json
    ```
 
 ## 3단계 — 최초 인증 실행 (1회만)
@@ -26,7 +26,7 @@ pip3 install google-auth google-auth-oauthlib google-auth-httplib2 google-api-py
 터미널에서:
 
 ```bash
-cd /Users/hyunchangkang/Claude
+cd /Users/hyunchangkang/Antigravity
 python3 gcal_sync.py
 ```
 
@@ -55,13 +55,13 @@ TARGET_CALENDARS = ["primary", "팀캘린더ID@group.calendar.google.com"]
 ## 수동으로 지금 바로 실행하려면
 
 ```bash
-python3 /Users/hyunchangkang/Claude/gcal_sync.py
+python3 /Users/hyunchangkang/Antigravity/gcal_sync.py
 ```
 
 ## 로그 확인
 
-- 정상 로그: `/Users/hyunchangkang/Claude/gcal_sync.log`
-- 오류 로그: `/Users/hyunchangkang/Claude/gcal_sync_error.log`
+- 정상 로그: `/Users/hyunchangkang/Antigravity/gcal_sync.log`
+- 오류 로그: `/Users/hyunchangkang/Antigravity/gcal_sync_error.log`
 
 ## 자동 실행 중지하려면
 

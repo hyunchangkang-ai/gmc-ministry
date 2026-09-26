@@ -1,7 +1,7 @@
-const CACHE = 'gmc-v20';
+const CACHE = 'gmc-v21';
 const STATIC_ASSETS = [
-  '/gmc-ministry/Administration/icons/icon-192.png',
-  '/gmc-ministry/Administration/icons/icon-512.png',
+  '/gmc-ministry/icon-192.png',
+  '/gmc-ministry/icon-512.png',
 ];
 
 self.addEventListener('install', e => {

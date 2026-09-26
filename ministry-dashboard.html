@@ -6,6 +6,7 @@
   <title>GMC 주간 사역 관리</title>
   <link rel="manifest" href="/gmc-ministry/manifest.json" />
   <link rel="apple-touch-icon" href="/gmc-ministry/apple-touch-icon.png" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -1841,7 +1842,350 @@
     .all-week-btn:hover { background: rgba(255,255,255,0.3); }
     .all-week-btn.active { background: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.8); }
 
+    /* ══════════════════════════════════════════════════════════════
+       Design refresh — 위 기본 규칙을 덮어쓰는 다듬기 레이어
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+      --primary: #17324f;
+      --primary-light: #2a5780;
+      --primary-soft: #e8eef5;
+      --accent: #b8893a;
+      --accent-light: #d4a551;
+      --accent-soft: #f6eedf;
+      --bg: #f4f5f7;
+      --card-bg: #ffffff;
+      --border: #e1e5eb;
+      --border-strong: #cdd4de;
+      --text: #1b2533;
+      --text-muted: #6a7686;
+      --text-faint: #9aa4b2;
+      --todo-done: #a3acb8;
+      --green: #2c7a55;
+      --green-light: #dff3e8;
+      --danger: #b83a3a;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 2px rgba(23,50,79,0.05), 0 1px 3px rgba(23,50,79,0.04);
+      --shadow-hover: 0 2px 4px rgba(23,50,79,0.05), 0 10px 24px -8px rgba(23,50,79,0.16);
+      --shadow-pop: 0 12px 40px -8px rgba(23,50,79,0.28);
+      --ease: cubic-bezier(.2,.7,.2,1);
+    }
 
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+      font-feature-settings: 'tnum' 0;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em;
+      min-height: 100dvh;
+    }
+    button, input, select, textarea { font-family: inherit; letter-spacing: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible { outline: none; }
+
+    /* Header */
+    .app-header {
+      background: var(--primary);
+      padding: 14px 28px 12px;
+      box-shadow: none;
+      gap: 16px;
+    }
+    .app-header h1 { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.02em; }
+    .app-header .subtitle { font-size: 0.74rem; opacity: 0.62; font-weight: 500; letter-spacing: 0; }
+    .header-annual-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.26);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-weight: 600;
+      transition: background .2s var(--ease), border-color .2s var(--ease);
+    }
+    .header-annual-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.45); }
+    .week-nav { gap: 6px; }
+    .week-label {
+      background: transparent;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      min-width: 210px;
+      padding: 6px 8px;
+    }
+    .nav-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.22);
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      transition: background .2s var(--ease), border-color .2s var(--ease), transform .1s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.45); }
+    .nav-btn:active, .today-btn:active, .header-annual-btn:active { transform: translateY(1px); }
+    .today-btn {
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      margin-left: 4px;
+      transition: background .2s var(--ease), transform .1s;
+    }
+
+    /* Week strip — 헤더와 한 덩어리로 */
+    .week-strip {
+      background: var(--primary);
+      padding: 0 28px 14px;
+      gap: 6px;
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+    }
+    .day-chip, .all-week-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      transition: background .2s var(--ease), border-color .2s var(--ease), color .2s;
+    }
+    .day-chip:hover, .all-week-btn:hover { background: rgba(255,255,255,0.14); }
+    .day-chip.today {
+      background: transparent;
+      border-color: var(--accent-light);
+      color: #f3dcae;
+      font-weight: 700;
+    }
+    .day-chip.selected, .all-week-btn.active {
+      background: #fff;
+      border-color: #fff;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .day-chip.today.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Main + toolbar */
+    .main { max-width: 1320px; padding: 28px 28px 56px; }
+    .toolbar { margin-bottom: 24px; align-items: stretch; }
+    .toolbar-left { align-items: center; gap: 8px; }
+    .add-ministry-btn {
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: 0.86rem;
+      box-shadow: 0 1px 2px rgba(23,50,79,0.2);
+      transition: background .2s var(--ease), transform .1s;
+    }
+    .add-ministry-btn:active, .btn-save:active, .btn-cancel:active, .todo-add-btn:active { transform: translateY(1px); }
+    .btn-secondary {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      box-shadow: none;
+      font-weight: 600;
+    }
+    .btn-secondary:hover { background: var(--primary-soft); }
+    .filter-select {
+      border-color: var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      font-size: 0.84rem;
+      transition: border-color .2s var(--ease);
+    }
+    .filter-select:hover { border-color: var(--text-faint); }
+
+    .progress-summary {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 22px;
+      gap: 22px;
+      box-shadow: var(--shadow);
+    }
+    .summary-item { text-align: left; }
+    .summary-item .num {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+    .summary-item .lbl { font-size: 0.72rem; font-weight: 500; margin-top: 3px; }
+    .summary-divider { background: var(--border); height: 32px; }
+    #sumPct { color: var(--accent); }
+
+    /* Cards grid */
+    .cards-grid {
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 20px;
+      margin-top: 0;
+      align-items: start;
+    }
+    .ministry-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s;
+    }
+    .ministry-card:hover {
+      box-shadow: var(--shadow-hover);
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s;
+    }
+    .ministry-card.pinned { border-top: 1px solid var(--border); box-shadow: inset 0 3px 0 var(--accent), var(--shadow); }
+    .ministry-card.pinned:hover { box-shadow: inset 0 3px 0 var(--accent), var(--shadow-hover); }
+
+    .card-header { padding: 18px 18px 14px; gap: 12px; border-bottom-color: var(--border); }
+    .card-color-dot { width: 10px; height: 10px; margin-top: 6px; box-shadow: 0 0 0 3px rgba(0,0,0,0.04); }
+    .card-title-wrap { min-width: 0; }
+    .card-title { font-size: 1.04rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+    .card-sub {
+      font-size: 0.76rem;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .card-meta-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .card-meta-row .category-chip { margin: 0; }
+    .card-progress-bar {
+      flex: 1;
+      height: 4px;
+      margin-top: 0;
+      background: #edf0f4;
+      border-radius: 99px;
+    }
+    .card-progress-fill { border-radius: 99px; transition: width .4s var(--ease); }
+    .card-pct { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 30px; text-align: right; }
+
+    .card-actions { gap: 0; opacity: .55; transition: opacity .2s var(--ease); }
+    .ministry-card:hover .card-actions, .card-actions:focus-within { opacity: 1; }
+    .icon-btn { font-size: 0.8rem; padding: 5px 7px; border-radius: 6px; transition: background .2s var(--ease); }
+    .icon-btn:hover { background: var(--bg); }
+    .icon-btn.danger:hover { background: #fbecec; }
+    .icon-btn.pinned-active { opacity: 1; }
+
+    .card-body { padding: 14px 18px 16px; }
+
+    /* 상태 칩 — 조용한 세그먼트 형태 */
+    .status-row { gap: 6px; }
+    .status-chip {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      background: transparent !important;
+      color: var(--text-faint) !important;
+      border: 1px solid var(--border) !important;
+      transition: background .2s var(--ease), color .2s, border-color .2s;
+    }
+    .status-chip:hover { color: var(--text) !important; border-color: var(--border-strong) !important; }
+    .status-chip.selected { box-shadow: none; filter: none; font-weight: 700; }
+    .status-chip.s-planning.selected   { background: #e7f0fa !important; color: #245c93 !important; border-color: #c3d8ee !important; }
+    .status-chip.s-inprogress.selected { background: #fbf2de !important; color: #8a5a12 !important; border-color: #ecd6a4 !important; }
+    .status-chip.s-done.selected       { background: var(--green-light) !important; color: var(--green) !important; border-color: #b5dfc8 !important; }
+    .status-chip.s-hold.selected       { background: #fbeaea !important; color: var(--danger) !important; border-color: #efc7c7 !important; }
+
+    /* Category / badges — 둥근 사각형 태그 */
+    .category-chip {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      letter-spacing: 0;
+      line-height: 1.5;
+    }
+    .due-badge, .annual-badge, .todo-priority { border-radius: 5px; font-weight: 600; }
+    .urgent-badge { border-radius: 5px; background: var(--danger); font-weight: 600; margin-left: 0; }
+
+    /* 카드 안 할 일 목록 */
+    .card-date-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin: 12px 0 4px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+    }
+    .card-date-header:first-child { margin-top: 2px; }
+    .todo-item.compact {
+      align-items: center;
+      gap: 8px;
+      padding: 5px 6px;
+      margin: 0 -6px;
+      border-bottom: none;
+      border-radius: 6px;
+      font-size: 0.83rem;
+      transition: background .15s var(--ease);
+    }
+    .todo-item.compact:hover { background: #f5f7fa; }
+    .todo-item.compact input[type="checkbox"] { width: 14px; height: 14px; margin-top: 0; }
+    .todo-item.compact .todo-text {
+      flex: 1;
+      font-size: 0.83rem;
+      line-height: 1.45;
+      cursor: pointer;
+      min-height: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .card-empty { font-size: 0.8rem; color: var(--text-faint); padding: 18px 0 8px; text-align: center; }
+
+    .todo-item { border-bottom-color: #f0f2f5; }
+    .todo-input, .todo-add-date, .todo-add-time, .ministry-textarea, .due-input {
+      border-color: var(--border-strong);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .todo-input:focus, .todo-add-date:focus, .todo-add-time:focus, .ministry-textarea:focus,
+    .form-group input:focus, .form-group select:focus, #annualLinkSearch:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(42,87,128,0.12);
+    }
+    .todo-input { border-radius: var(--radius-sm); padding: 8px 12px; }
+    .todo-add-btn { border-radius: var(--radius-sm); padding: 8px 14px; transition: background .2s var(--ease), transform .1s; }
+    .ministry-textarea { border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.65; min-height: 160px; }
+    .section-label { text-transform: none; letter-spacing: 0; font-size: 0.78rem; font-weight: 600; }
+    .drawer-date-header { color: var(--text-muted); border-left: none; padding-left: 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); margin: 14px 0 4px; }
+
+    /* Modals & drawer */
+    .modal-overlay, .drawer-overlay, #annualLinkModal { background: rgba(15,28,44,0.42); backdrop-filter: blur(2px); }
+    .modal, .annual-modal-box { border-radius: 16px; box-shadow: var(--shadow-pop); }
+    .modal { padding: 26px 26px 22px; }
+    .modal h2 { font-size: 1.08rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+    .form-group label { font-size: 0.8rem; font-weight: 600; }
+    .form-group input, .form-group select { border-color: var(--border-strong); border-radius: var(--radius-sm); }
+    .btn-cancel, .btn-save { border-radius: var(--radius-sm); font-weight: 600; transition: background .2s var(--ease), transform .1s; }
+    .btn-cancel { background: #fff; border-color: var(--border-strong); }
+    .btn-cancel:hover { background: var(--bg); }
+    .detail-drawer { height: 100dvh; width: 440px; box-shadow: var(--shadow-pop); transition: transform .3s var(--ease); }
+    .drawer-header { padding: 20px 20px 14px; }
+    .drawer-title-input { font-size: 1.12rem; letter-spacing: -0.02em; color: var(--text); }
+    .drawer-status-row { padding: 12px 20px; }
+    .drawer-tab { padding: 12px 10px; transition: color .2s var(--ease), border-color .2s var(--ease); }
+    .drawer-tab:hover { color: var(--text); }
+    .drawer-body { padding: 16px 20px 28px; }
+    .annual-link-item:hover { background: var(--primary-soft); }
+
+    #toast {
+      background: var(--text) !important;
+      border-radius: 10px !important;
+      box-shadow: var(--shadow-pop);
+      font-weight: 500;
+    }
+
+    @media (max-width: 760px) {
+      .app-header { padding: 14px 16px 10px; flex-wrap: wrap; }
+      .week-nav { width: 100%; }
+      .week-label { flex: 1; min-width: 0; font-size: 0.9rem; }
+      .today-btn { white-space: nowrap; }
+      .toolbar-left .filter-select { flex: 1; }
+      .week-strip { padding: 0 16px 12px; }
+      .main { padding: 18px 16px 40px; }
+      .toolbar { flex-direction: column; }
+      .progress-summary { justify-content: space-between; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .card-actions { opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0s !important; }
+      .ministry-card:hover { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -1873,7 +2217,7 @@
   <div class="toolbar">
     <div class="toolbar-left">
       <button class="add-ministry-btn" id="addMinistryBtn">＋ 사역 추가</button>
-      <button class="add-ministry-btn" id="manageCatsBtn" style="background:var(--text-muted);font-size:0.82rem;padding:10px 14px;">🏷 카테고리</button>
+      <button class="add-ministry-btn btn-secondary" id="manageCatsBtn">🏷 카테고리</button>
       <select class="filter-select" id="filterStatus">
         <option value="all">전체 보기</option>
         <option value="s-planning">계획 중</option>
@@ -2877,10 +3221,10 @@ const _DAY_KO = ['(일)','(월)','(화)','(수)','(목)','(금)','(토)'];
 function renderTodoItems(todos) {
   return `<ul class="todo-list">${todos.map(t => {
     const autoCat = getAllCategories().find(c => c.key === detectCategoryForTodo(t)) || CATEGORIES.find(c => c.key === 'other');
-    return `<li class="todo-item" style="font-size:0.82rem;padding:3px 0;gap:4px;">
-      <input type="checkbox" ${t.done?'checked':''} data-preview-check data-todo-id="${t.id}" style="width:13px;height:13px;accent-color:var(--green);flex-shrink:0;margin-top:2px;" />
-      <span class="${t.done?'todo-text done':'todo-text'}" style="flex:1;font-size:0.82rem;cursor:pointer;" data-open-todo="${t.id}">${escHtml(t.text)}</span>
-      <span class="category-chip" style="background:${autoCat.color};font-size:0.68rem;padding:1px 6px;flex-shrink:0;">${autoCat.label}</span>
+    return `<li class="todo-item compact">
+      <input type="checkbox" ${t.done?'checked':''} data-preview-check data-todo-id="${t.id}" />
+      <span class="${t.done?'todo-text done':'todo-text'}" data-open-todo="${t.id}">${escHtml(t.text)}</span>
+      <span class="category-chip" style="background:${autoCat.color};">${autoCat.label}</span>
       ${t.annualEventId ? `<span class="annual-badge">📅 연간</span>` : ''}
       ${getDueStatus(t) ? `<span class="due-badge ${getDueStatus(t)}">${DUE_LABEL[getDueStatus(t)]}</span>` : ''}
     </li>`;
@@ -2923,7 +3267,7 @@ function buildTodoListHtml(todos) {
   dateKeys.forEach(date => {
     const d = new Date(date + 'T00:00:00');
     const label = `${d.getMonth()+1}/${d.getDate()} ${_DAY_KO[d.getDay()]}`;
-    html += `<div style="font-size:0.72rem;font-weight:700;color:var(--primary);margin:6px 0 2px;border-left:3px solid var(--primary);padding-left:6px;">${label}</div>`;
+    html += `<div class="card-date-header">${label}</div>`;
     html += renderTodoItems(groups[date]);
   });
   if (noDate.length) html += renderTodoItems(noDate);
@@ -2949,15 +3293,18 @@ function buildCard(m) {
     <div class="card-header">
       <div class="card-color-dot" style="background:${m.color||'#1a3a5c'}"></div>
       <div class="card-title-wrap">
-        <div class="card-title" style="font-size:1rem;font-weight:700;color:var(--primary);">${escHtml(m.name)}</div>
+        <div class="card-title">${escHtml(m.name)}</div>
         <div class="card-sub">
-          ${m.owner ? `👤 ${escHtml(m.owner)} &nbsp;·&nbsp;` : ''}
-          할 일 ${done}/${total}
+          ${m.owner ? `<span>👤 ${escHtml(m.owner)}</span><span>·</span>` : ''}
+          <span>할 일 ${done}/${total}</span>
           ${urgentCount > 0 ? `<span class="urgent-badge">⚠ ${urgentCount}</span>` : ''}
         </div>
-        <span class="category-chip" style="background:${cat.color};margin-top:4px;display:inline-block;">${cat.label}</span>
-        <div class="card-progress-bar" style="margin-top:6px;">
-          <div class="card-progress-fill" style="width:${pct}%"></div>
+        <div class="card-meta-row">
+          <span class="category-chip" style="background:${cat.color};">${cat.label}</span>
+          <div class="card-progress-bar">
+            <div class="card-progress-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="card-pct">${pct}%</span>
         </div>
       </div>
       <div class="card-actions">
@@ -2966,11 +3313,11 @@ function buildCard(m) {
         <button class="icon-btn danger" title="삭제" data-action="delete">🗑️</button>
       </div>
     </div>
-    <div class="card-body" style="padding:10px 14px;">
-      <div class="status-row" style="margin-bottom:8px;">
+    <div class="card-body">
+      <div class="status-row">
         ${STATUS_LIST.map(s=>`<span class="status-chip ${s.key}${m.status===s.key?' selected':''}" data-status="${s.key}">${s.label}</span>`).join('')}
       </div>
-      ${filteredTodos.length > 0 ? buildTodoListHtml(filteredTodos) : `<div style="font-size:0.8rem;color:var(--text-muted);padding:4px 0;">할 일이 없습니다. 클릭하여 추가하세요.</div>`}
+      ${filteredTodos.length > 0 ? buildTodoListHtml(filteredTodos) : `<div class="card-empty">할 일이 없습니다. 카드를 눌러 추가하세요.</div>`}
     </div>
   `;
 

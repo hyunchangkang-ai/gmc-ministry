@@ -27,7 +27,7 @@ description: Use when modifying, debugging, or deploying the GMC 사역 관리 d
 
 ## 배포 절차
 1. 프론트엔드: HTML 수정 → 커밋 → `main` 푸시 → GitHub Pages 자동 반영.
-2. 캐시 갱신이 필요한 변경이면 `sw.js`의 `CACHE` 번호와 `ministry-dashboard.html` 부제목의 버전 라벨을 **함께** 올린다(과거 커밋 관례). 현재 `sw.js`는 v21, 라벨은 v20으로 어긋나 있으니 확인 후 맞춘다.
+2. 캐시 갱신이 필요한 변경이면 `sw.js`의 `CACHE` 번호와 `ministry-dashboard.html` 부제목의 버전 라벨을 **함께** 올린다(과거 커밋 관례). 현재 둘 다 v21이다(2026-09-30 맞춤).
 3. 백엔드(`.gs`): Apps Script 편집기에 붙여넣기 → **배포 관리 → 기존 배포 편집 → 새 버전**으로 재배포. 새 배포를 만들면 웹 앱 URL이 바뀐다.
 4. 웹 앱 URL은 `ministry-dashboard.html`(`APPS_SCRIPT_URL`)과 `index_old.html`에 하드코딩되어 있다. URL이 바뀌면 모두 교체한다.
 

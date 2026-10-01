@@ -28,6 +28,12 @@ const COL_EMAIL = 11;          // L열: Email (신청자 이메일 - 충돌 시 
 const COL_EQUIPMENT = 12;      // M열: 필요한 장비들 (Equipment Needed)
 const COL_STATUS = 13;         // N열: 처리 상태 (Status - 신설 컬럼)
 
+// 안내 메일 발송 계정/참조 주소 (행정실)
+// 주의: MailApp은 "스크립트를 소유한 계정"으로 발송됩니다.
+// 발신자를 office@gmcusa.org로 하려면 이 스크립트(와 트리거)를 office@gmcusa.org 계정이 소유해야 합니다.
+const OFFICE_EMAIL = 'office@gmcusa.org';
+const MAIL_SENDER_NAME = 'GMC 행정실';
+
 // 처리 상태 명칭 정의
 const STATUS_APPROVED = '등록 완료';
 const STATUS_DUPLICATE = '중복 신청';
@@ -135,6 +141,8 @@ function processLatestSubmissions() {
       sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_ERROR);
       sheet.getRange(idx, COL_STATUS + 1).setBackground("#f8cbad"); // 연한 주황색(오류) 표시
       Logger.log(`[오류] ${idx}번 행 (${name}님, ${room}호): 날짜/시간 정보를 파싱할 수 없습니다.`);
+      sendErrorEmail(email, name, room, dateTimeStr,
+        "입력하신 사용 일자·요일·시간을 시스템이 인식하지 못했습니다. 예: '2026년 10월 11일 주일 오후 1시~3시' 와 같이 날짜, 요일, 시작·종료 시간을 함께 적어 다시 신청해 주시기 바랍니다.");
       continue;
     }
     
@@ -172,8 +180,9 @@ function processLatestSubmissions() {
       // 실제 예약 시간대 겹침 확인
       if (doSlotsConflict(taskSlots, otherSlots)) {
         const otherName = String(currentSheetData[i][COL_NAME]).trim();
-        
-        if (otherName === name) {
+        const otherEmail = String(currentSheetData[i][COL_EMAIL]).trim();
+
+        if (isSameApplicant(name, email, otherName, otherEmail)) {
           // [중복 신청] 동일한 사람, 일정 겹침, 동일한 교실인 경우
           isDuplicate = true;
           break; // 중복이 감지되면 즉시 루프 중단 (중복 우선 적용)
@@ -190,7 +199,10 @@ function processLatestSubmissions() {
       sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_DUPLICATE);
       sheet.getRange(idx, COL_STATUS + 1).setBackground("#f3f3f3"); // 밝은 회색 표시
       Logger.log(`[중복] ${idx}번 행 (${name}님, ${room}호): 이미 본인이 신청한 내역이 존재합니다.`);
-      
+
+      // 중복 신청 안내 메일 발송 (이미 접수된 신청이 유효함을 알림)
+      sendDuplicateEmail(email, name, room, dateTimeStr);
+
     } else if (isConflict) {
       // 일정 충돌 처리 (캘린더 등록 안 함, 상태 기록 + 이메일 안내 발송)
       sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_CONFLICT);
@@ -216,6 +228,8 @@ function processLatestSubmissions() {
         sheet.getRange(idx, COL_STATUS + 1).setValue(STATUS_ERROR);
         sheet.getRange(idx, COL_STATUS + 1).setBackground("#f8cbad"); // 연한 주황색(오류) 표시
         Logger.log(`[오류] ${idx}번 행 (${name}님, ${room}호): 캘린더 등록 중 문제가 발생했습니다.`);
+        sendErrorEmail(email, name, room, dateTimeStr,
+          "시스템 오류로 캘린더에 예약을 등록하지 못했습니다. 행정실에서 확인 후 별도로 연락드리겠습니다.");
       }
     }
   }
@@ -233,62 +247,116 @@ function cleanStr(str) {
   return String(str).replace(/\s+/g, "").toLowerCase();
 }
 
-/**
- * 예약 승인 확인 이메일을 전송합니다.
- */
-function sendApprovalEmail(email, name, room, dateTimeStr) {
-  if (!email || !email.includes("@")) {
-    Logger.log(`[이메일 생략] '${name}'님의 이메일 주소('${email}')가 올바르지 않아 메일을 발송하지 못했습니다.`);
-    return;
+// 이메일 오타로 보고 동일인으로 간주하는 최대 편집 거리(글자 수)
+const EMAIL_TYPO_MAX_DISTANCE = 2;
+
+/** 두 문자열의 편집 거리(Levenshtein)를 반환합니다. */
+function editDistance(a, b) {
+  const m = a.length, n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
   }
-  
-  const subject = `[교회 장소 신청] 장소 예약이 확인되었습니다.`;
-  const body = `안녕하세요, ${name} 성도님.
-
-장소 신청 예약이 확인되었습니다. 신청하신 요일/시간에 장소를 사용하실 수 있습니다. 기타 문의는 office@gmcusa.org로 해주시기 바랍니다. 감사합니다.
-
-■ 신청 장소: ${room}
-■ 사용 시간: ${dateTimeStr}
-
-GMC 행정실 드림
----------------------------------------------
-본 메일은 구글 스프레드시트 장소 예약 시스템에서 자동으로 발송되었습니다.`;
-
-  try {
-    MailApp.sendEmail(email, subject, body, { cc: "office@gmcusa.org" });
-    Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 예약 승인 확인 메일을 발송하였습니다.`);
-  } catch (error) {
-    Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
-  }
+  return prev[n];
 }
 
 /**
- * 일정 충돌이 발생한 신청자에게 알림 이메일을 전송합니다.
+ * 두 신청이 같은 신청자인지 판정합니다. (중복 신청 vs 일정 충돌 구분 기준)
+ * - 양쪽 이메일이 모두 유효한 경우:
+ *   · 이메일이 완전히 같으면 동일인
+ *   · 이름이 같고 이메일이 EMAIL_TYPO_MAX_DISTANCE 글자 이내로만 다르면 오타로 보고 동일인
+ *   · 그 외(이름이 같아도 이메일이 많이 다르면)는 동명이인으로 봅니다.
+ * - 이메일이 없으면 공백을 제거한 이름으로 비교합니다.
  */
-function sendConflictEmail(email, name, room, dateTimeStr) {
+function isSameApplicant(nameA, emailA, nameB, emailB) {
+  const a = cleanStr(emailA);
+  const b = cleanStr(emailB);
+  const sameName = cleanStr(nameA) !== "" && cleanStr(nameA) === cleanStr(nameB);
+  if (a.includes("@") && b.includes("@")) {
+    if (a === b) return true;
+    return sameName && editDistance(a, b) <= EMAIL_TYPO_MAX_DISTANCE;
+  }
+  return sameName;
+}
+
+/**
+ * 모든 안내 메일의 공통 발송 함수.
+ * - 발신: 스크립트 소유 계정(office@gmcusa.org 계정이 소유해야 함), 표시 이름은 'GMC 행정실'
+ * - 참조(CC): office@gmcusa.org, 회신(replyTo): office@gmcusa.org
+ * - 신청자 이메일이 없거나 형식이 잘못되면 행정실로 '수동 안내 필요' 알림을 보냅니다.
+ */
+function sendNoticeEmail(email, name, subject, body) {
   if (!email || !email.includes("@")) {
     Logger.log(`[이메일 생략] '${name}'님의 이메일 주소('${email}')가 올바르지 않아 메일을 발송하지 못했습니다.`);
-    return;
+    try {
+      MailApp.sendEmail(OFFICE_EMAIL,
+        `[행정실 확인 필요] ${name}님께 안내 메일을 보내지 못했습니다`,
+        `신청자 이메일 주소('${email}')가 올바르지 않아 아래 안내 메일을 발송하지 못했습니다. 직접 연락해 주세요.\n\n제목: ${subject}\n\n${body}`,
+        { name: MAIL_SENDER_NAME });
+    } catch (error) {
+      Logger.log(`[이메일 에러] 행정실 알림 발송 실패: ` + error.toString());
+    }
+    return false;
   }
-  
-  const subject = `[교회 장소 신청 안내] 신청하신 장소 예약 일정에 충돌이 발생했습니다.`;
-  const body = `안녕하세요, ${name} 성도님.
+  try {
+    MailApp.sendEmail(email, subject, body, {
+      cc: OFFICE_EMAIL,
+      replyTo: OFFICE_EMAIL,
+      name: MAIL_SENDER_NAME
+    });
+    Logger.log(`[이메일 발송 완료] ${email} (${name}님): ${subject}`);
+    return true;
+  } catch (error) {
+    Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
+    return false;
+  }
+}
 
-신청하신 장소는 이미 예약되어 있습니다. 다른 요일/시간으로 조정하거나 다른 장소를 정하여 다시 신청해 주시기 바랍니다.
+function buildMailBody(name, intro, room, dateTimeStr) {
+  return `안녕하세요, ${name} 성도님.
+
+${intro}
 
 ■ 신청 장소: ${room}
 ■ 사용 시간: ${dateTimeStr}
 
+기타 문의는 office@gmcusa.org로 해주시기 바랍니다.
+
 GMC 행정실 드림
 ---------------------------------------------
 본 메일은 구글 스프레드시트 장소 예약 시스템에서 자동으로 발송되었습니다.`;
+}
 
-  try {
-    MailApp.sendEmail(email, subject, body, { cc: "office@gmcusa.org" });
-    Logger.log(`[이메일 발송 완료] ${email} (${name}님)에게 일정 충돌 취소 메일을 발송하였습니다.`);
-  } catch (error) {
-    Logger.log(`[이메일 에러] ${email} 발송 실패: ` + error.toString());
-  }
+/** 예약 승인 확인 이메일 */
+function sendApprovalEmail(email, name, room, dateTimeStr) {
+  sendNoticeEmail(email, name,
+    `[교회 장소 신청] 장소 예약이 확인되었습니다.`,
+    buildMailBody(name, "장소 신청 예약이 확인되었습니다. 신청하신 요일/시간에 장소를 사용하실 수 있습니다.", room, dateTimeStr));
+}
+
+/** 일정 충돌 안내 이메일 */
+function sendConflictEmail(email, name, room, dateTimeStr) {
+  sendNoticeEmail(email, name,
+    `[교회 장소 신청 안내] 신청하신 장소 예약 일정에 충돌이 발생했습니다.`,
+    buildMailBody(name, "신청하신 장소는 같은 시간대에 이미 다른 분이 먼저 신청하여 예약되어 있습니다. 이번 신청은 등록되지 않았습니다. 다른 요일/시간으로 조정하거나 다른 장소를 정하여 다시 신청해 주시기 바랍니다.", room, dateTimeStr));
+}
+
+/** 중복 신청 안내 이메일 */
+function sendDuplicateEmail(email, name, room, dateTimeStr) {
+  sendNoticeEmail(email, name,
+    `[교회 장소 신청 안내] 동일한 신청이 이미 접수되어 있습니다.`,
+    buildMailBody(name, "본인이 같은 장소·겹치는 시간에 이미 신청하신 내역이 있어 이번 신청은 중복으로 처리되었습니다. 이전에 접수된 신청이 유효하며 다시 신청하실 필요가 없습니다. 시간을 변경하시려면 새로 신청하지 마시고 행정실로 문의해 주시기 바랍니다. 이전 신청의 확인 메일을 받지 못하셨다면 행정실로 문의해 주시기 바랍니다.", room, dateTimeStr));
+}
+
+/** 오류 안내 이메일 (reason: 오류 사유) */
+function sendErrorEmail(email, name, room, dateTimeStr, reason) {
+  sendNoticeEmail(email, name,
+    `[교회 장소 신청 안내] 신청하신 장소 예약이 처리되지 않았습니다.`,
+    buildMailBody(name, "신청하신 장소 예약이 처리되지 않았습니다.\n\n■ 사유: " + reason, room, dateTimeStr));
 }
 
 /**

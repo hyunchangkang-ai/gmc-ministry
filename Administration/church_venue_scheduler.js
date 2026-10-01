@@ -180,8 +180,9 @@ function processLatestSubmissions() {
       // 실제 예약 시간대 겹침 확인
       if (doSlotsConflict(taskSlots, otherSlots)) {
         const otherName = String(currentSheetData[i][COL_NAME]).trim();
-        
-        if (otherName === name) {
+        const otherEmail = String(currentSheetData[i][COL_EMAIL]).trim();
+
+        if (isSameApplicant(name, email, otherName, otherEmail)) {
           // [중복 신청] 동일한 사람, 일정 겹침, 동일한 교실인 경우
           isDuplicate = true;
           break; // 중복이 감지되면 즉시 루프 중단 (중복 우선 적용)
@@ -247,6 +248,20 @@ function cleanStr(str) {
 }
 
 /**
+ * 두 신청이 같은 신청자인지 판정합니다. (중복 신청 vs 일정 충돌 구분 기준)
+ * - 양쪽 이메일이 모두 유효하면 이메일(대소문자·공백 무시)로 비교합니다. 동명이인 오판 방지.
+ * - 이메일이 없으면 공백을 제거한 이름으로 비교합니다.
+ */
+function isSameApplicant(nameA, emailA, nameB, emailB) {
+  const a = cleanStr(emailA);
+  const b = cleanStr(emailB);
+  if (a.includes("@") && b.includes("@")) {
+    return a === b;
+  }
+  return cleanStr(nameA) !== "" && cleanStr(nameA) === cleanStr(nameB);
+}
+
+/**
  * 모든 안내 메일의 공통 발송 함수.
  * - 발신: 스크립트 소유 계정(office@gmcusa.org 계정이 소유해야 함), 표시 이름은 'GMC 행정실'
  * - 참조(CC): office@gmcusa.org, 회신(replyTo): office@gmcusa.org
@@ -305,14 +320,14 @@ function sendApprovalEmail(email, name, room, dateTimeStr) {
 function sendConflictEmail(email, name, room, dateTimeStr) {
   sendNoticeEmail(email, name,
     `[교회 장소 신청 안내] 신청하신 장소 예약 일정에 충돌이 발생했습니다.`,
-    buildMailBody(name, "신청하신 장소는 이미 예약되어 있습니다. 다른 요일/시간으로 조정하거나 다른 장소를 정하여 다시 신청해 주시기 바랍니다.", room, dateTimeStr));
+    buildMailBody(name, "신청하신 장소는 같은 시간대에 이미 다른 분이 먼저 신청하여 예약되어 있습니다. 이번 신청은 등록되지 않았습니다. 다른 요일/시간으로 조정하거나 다른 장소를 정하여 다시 신청해 주시기 바랍니다.", room, dateTimeStr));
 }
 
 /** 중복 신청 안내 이메일 */
 function sendDuplicateEmail(email, name, room, dateTimeStr) {
   sendNoticeEmail(email, name,
     `[교회 장소 신청 안내] 동일한 신청이 이미 접수되어 있습니다.`,
-    buildMailBody(name, "같은 장소·같은 시간에 대한 신청이 이미 접수되어 있어 이번 신청은 중복으로 처리되었습니다. 이전에 접수된 신청이 유효하며 별도로 다시 신청하실 필요가 없습니다. 이전 신청의 확인 메일을 받지 못하셨다면 행정실로 문의해 주시기 바랍니다.", room, dateTimeStr));
+    buildMailBody(name, "본인이 같은 장소·겹치는 시간에 이미 신청하신 내역이 있어 이번 신청은 중복으로 처리되었습니다. 이전에 접수된 신청이 유효하며 다시 신청하실 필요가 없습니다. 시간을 변경하시려면 새로 신청하지 마시고 행정실로 문의해 주시기 바랍니다. 이전 신청의 확인 메일을 받지 못하셨다면 행정실로 문의해 주시기 바랍니다.", room, dateTimeStr));
 }
 
 /** 오류 안내 이메일 (reason: 오류 사유) */

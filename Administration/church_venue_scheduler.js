@@ -247,18 +247,40 @@ function cleanStr(str) {
   return String(str).replace(/\s+/g, "").toLowerCase();
 }
 
+// 이메일 오타로 보고 동일인으로 간주하는 최대 편집 거리(글자 수)
+const EMAIL_TYPO_MAX_DISTANCE = 2;
+
+/** 두 문자열의 편집 거리(Levenshtein)를 반환합니다. */
+function editDistance(a, b) {
+  const m = a.length, n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+
 /**
  * 두 신청이 같은 신청자인지 판정합니다. (중복 신청 vs 일정 충돌 구분 기준)
- * - 양쪽 이메일이 모두 유효하면 이메일(대소문자·공백 무시)로 비교합니다. 동명이인 오판 방지.
+ * - 양쪽 이메일이 모두 유효한 경우:
+ *   · 이메일이 완전히 같으면 동일인
+ *   · 이름이 같고 이메일이 EMAIL_TYPO_MAX_DISTANCE 글자 이내로만 다르면 오타로 보고 동일인
+ *   · 그 외(이름이 같아도 이메일이 많이 다르면)는 동명이인으로 봅니다.
  * - 이메일이 없으면 공백을 제거한 이름으로 비교합니다.
  */
 function isSameApplicant(nameA, emailA, nameB, emailB) {
   const a = cleanStr(emailA);
   const b = cleanStr(emailB);
+  const sameName = cleanStr(nameA) !== "" && cleanStr(nameA) === cleanStr(nameB);
   if (a.includes("@") && b.includes("@")) {
-    return a === b;
+    if (a === b) return true;
+    return sameName && editDistance(a, b) <= EMAIL_TYPO_MAX_DISTANCE;
   }
-  return cleanStr(nameA) !== "" && cleanStr(nameA) === cleanStr(nameB);
+  return sameName;
 }
 
 /**
